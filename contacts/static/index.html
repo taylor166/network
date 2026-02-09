@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Management - Networking CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #ffffff;
+            --primary-dark: #d1d5db;
+            --primary-light: #9ca3af;
+            --bg-primary: #191919;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1a1;
+            --text-tertiary: #6b7280;
+            --border-color: #373737;
+            --border-light: #2a2a2a;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.4;
+            font-weight: 400;
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .app-layout {
+            display: flex;
+            min-height: 100vh;
+            gap: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 32px 40px;
+            max-width: calc(100% - 280px);
+            overflow-x: auto;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-primary);
+            border-left: 1px solid var(--border-color);
+            padding: 28px 20px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
+        }
+
+        header {
+            margin-bottom: 32px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        header p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            background: var(--text-secondary);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+            border-color: var(--border-color);
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .filters {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .contacts-table {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-primary);
+        }
+
+        th {
+            padding: 8px 12px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        th:hover {
+            background: var(--bg-tertiary);
+        }
+
+        th.filterable {
+            padding-right: 28px;
+        }
+
+        .filter-icon {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            opacity: 0.6;
+            transition: opacity 0.2s ease;
+        }
+
+        th.filter-active .filter-icon {
+            opacity: 1;
+            color: var(--text-primary);
+        }
+
+        th.filter-active {
+            background: var(--bg-tertiary);
+        }
+
+        .filter-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 8px;
+            margin-top: 4px;
+        }
+
+        .filter-dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .filter-dropdown-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .filter-dropdown-item input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .filter-dropdown-item label {
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+            text-transform: none;
+            letter-spacing: 0;
+            font-weight: 400;
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-tertiary);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Status colors matching Notion - adjusted for dark theme */
+        .status-wait { background: #3a3a3a; color: #d1d5db; }
+        .status-queued { background: #3a3a3a; color: #d1d5db; }
+        .status-need_to_contact { background: #7f1d1d; color: #fecaca; }
+        .status-contacted { background: #1e3a8a; color: #bfdbfe; }
+        .status-circle_back { background: #6b21a8; color: #e9d5ff; }
+        .status-scheduled { background: #78350f; color: #fde68a; }
+        .status-done { background: #065f46; color: #a7f3d0; }
+        .status-ghosted { background: #374151; color: #d1d5db; }
+
+        /* Type badge colors matching Notion - adjusted for dark theme */
+        .type-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .type-existing { background: #78350f; color: #fde68a; }
+        .type-2026_new { background: #065f46; color: #a7f3d0; }
+
+        /* Group badge colors matching Notion - adjusted for dark theme */
+        .group-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .group-other { background: #3a3a3a; color: #d1d5db; }
+        .group-fam { background: #78350f; color: #fde68a; }
+        .group-McK { background: #3a3a3a; color: #d1d5db; }
+        .group-PEA { background: #7f1d1d; color: #fecaca; }
+        .group-GU { background: #1e3a8a; color: #bfdbfe; }
+        .group-BP { background: #065f46; color: #a7f3d0; }
+        .group-MBA { background: #6b21a8; color: #e9d5ff; }
+        .group-MVNX { background: #78350f; color: #fde68a; }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-small {
+            padding: 6px 14px;
+            font-size: 12px;
+        }
+
+        .sidebar-section {
+            margin-bottom: 24px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .stat-item {
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-section {
+            margin-bottom: 20px;
+        }
+
+        .stat-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .quick-action-btn {
+            width: 100%;
+            padding: 8px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .quick-action-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+
+        .draft-modal-content {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+        }
+
+        .draft-content {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--text-primary);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .draft-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-header h2 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 13px;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .form-group.required label::after {
+            content: " *";
+            color: #ef4444;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        
+        .form-row .form-group input,
+        .form-row .form-group select {
+            width: 100%;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--text-secondary);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .error {
+            background: #7f1d1d;
+            color: #fecaca;
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border: 1px solid #991b1b;
+            font-size: 13px;
+        }
+
+        .success {
+            background: #065f46;
+            color: #a7f3d0;
+            padding: 12px 14px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            border: 1px solid #047857;
+            font-size: 13px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 1024px) {
+            .app-layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-left: none;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .main-content {
+                max-width: 100%;
+            }
+        }
+
+        /* Ensure all text uses Inter */
+        input, select, textarea, button, label, th, td, h1, h2, h3, p, span, div {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <div class="main-content">
+            <header>
+                <h1>Contact Management</h1>
+                <p>Manage your networking contacts with Notion integration</p>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="openAddModal()">+ Add Contact</button>
+                    <button class="btn btn-secondary" onclick="loadContacts(true)">Refresh</button>
+                </div>
+            </header>
+
+            <div id="message"></div>
+
+            <div class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" id="search" placeholder="Search name, email, company..." oninput="applyFilters()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="contacts-table">
+                <div id="contacts-container">
+                    <div class="loading">Loading contacts...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="stat-section">
+                    <div class="stat-section-title">2026 Stats</div>
+                    <div class="sidebar-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Outbounds</div>
+                            <div class="stat-value" id="stat-2026-outbounds">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Calls</div>
+                            <div class="stat-value" id="stat-2026-calls">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-section">
+                    <div class="stat-section-title" id="this-month-title">This Month Stats</div>
+                    <div class="sidebar-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Outbounds</div>
+                            <div class="stat-value" id="stat-month-outbounds">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Calls</div>
+                            <div class="stat-value" id="stat-month-calls">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Quick Actions</h3>
+                <div class="quick-actions">
+                    <button class="quick-action-btn" onclick="openAddModal()">+ Add New Contact</button>
+                    <button class="quick-action-btn" onclick="loadContacts(true)">🔄 Refresh Data</button>
+                    <button class="quick-action-btn" onclick="filterByStatus('need_to_contact')">📋 View Need to Contact</button>
+                    <button class="quick-action-btn" onclick="filterByStatus('contacted')">✅ View Contacted</button>
+                    <button class="quick-action-btn" onclick="clearFilters()">🔍 Clear All Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Contact Modal -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add Contact</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="contactForm" onsubmit="saveContact(event)">
+                <input type="hidden" id="contactId">
+                
+                <div class="form-group required">
+                    <label>Name</label>
+                    <input type="text" id="name" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="phone">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="form_status">
+                            <option value="wait">Wait</option>
+                            <option value="queued" selected>Queued</option>
+                            <option value="need_to_contact">Need to Contact</option>
+                            <option value="contacted">Contacted</option>
+                            <option value="circle_back">Circle Back</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="done">Done</option>
+                            <option value="ghosted">Ghosted</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="form_type">
+                            <option value="">-- Select --</option>
+                            <option value="existing">Existing</option>
+                            <option value="2026_new">2026 New</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Group</label>
+                        <select id="form_group">
+                            <option value="">-- Select --</option>
+                            <option value="fam">Family</option>
+                            <option value="McK">McKinsey</option>
+                            <option value="PEA">Exeter</option>
+                            <option value="GU">Georgetown</option>
+                            <option value="BP">Berkshire</option>
+                            <option value="MBA">MBA</option>
+                            <option value="MVNX">Mavnox</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn URL</label>
+                        <input type="url" id="linkedin_url">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="company">
+                    </div>
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" id="title">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="location">
+                    </div>
+                    <div class="form-group">
+                        <label>Industry</label>
+                        <input type="text" id="industry">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" rows="3"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="button" id="deleteContactBtn" class="btn btn-danger" onclick="deleteContactFromModal()" style="display: none;">Delete</button>
+                    <button type="submit" class="btn btn-primary">Save Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div id="viewDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="viewDetailsTitle">Contact Details</h2>
+                <button class="close-btn" onclick="closeViewDetailsModal()">&times;</button>
+            </div>
+            <div id="viewDetailsContent" style="max-height: 70vh; overflow-y: auto;">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <button type="button" class="btn btn-secondary" onclick="closeViewDetailsModal()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="editFromViewDetails()">Edit Contact</button>
+                <button type="button" class="btn btn-secondary" onclick="sendFromViewDetails()">Send Message</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Draft Modal -->
+    <div id="sendModal" class="modal">
+        <div class="modal-content draft-modal-content">
+            <div class="modal-header">
+                <h2 id="sendModalTitle">Draft Message</h2>
+                <button class="close-btn" onclick="closeSendModal()">&times;</button>
+            </div>
+            <div id="draftType" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;"></div>
+            <div class="draft-content" id="draftContent"></div>
+            <div class="draft-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeSendModal()">Close</button>
+                <button type="button" class="btn btn-primary" onclick="copyDraft()">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let allContacts = [];
+        let activeFilters = {
+            status: [],
+            type: [],
+            group: [],
+            company: []
+        };
+        let openFilterDropdown = null;
+
+        async function loadContacts(forceRefresh = false) {
+            const container = document.getElementById('contacts-container');
+            if (!container) {
+                console.error('Contacts container not found');
+                return;
+            }
+            
+            container.innerHTML = '<div class="loading">Loading contacts...</div>';
+
+            try {
+                // Add refresh parameter if force refresh is requested
+                const url = forceRefresh ? `${API_BASE}/contacts?refresh=true` : `${API_BASE}/contacts`;
+                console.log('Fetching contacts from:', url);
+                console.log('Full URL:', window.location.origin + url);
+                
+                // Add timeout to detect if server is not responding
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+                
+                const response = await fetch(url, {
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                console.log('Response status:', response.status, response.statusText);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    let errorText = '';
+                    let errorDetail = null;
+                    try {
+                        errorText = await response.text();
+                        try {
+                            errorDetail = JSON.parse(errorText);
+                        } catch (e) {
+                            // Not JSON, use as-is
+                        }
+                    } catch (e) {
+                        errorText = 'Could not read error message';
+                    }
+                    
+                    const detailMessage = errorDetail?.detail || errorText;
+                    throw new Error(`Failed to load contacts: ${response.status} ${response.statusText}. ${detailMessage}`);
+                }
+                
+                const responseText = await response.text();
+                console.log('Response text length:', responseText.length);
+                console.log('Response text preview:', responseText.substring(0, 200));
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Response text:', responseText);
+                    throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+                }
+                
+                console.log('Received contacts:', data?.length || 0);
+                console.log('First contact sample:', data[0]);
+                
+                if (!Array.isArray(data)) {
+                    console.error('Invalid response format:', data);
+                    throw new Error('Invalid response format: expected array');
+                }
+                
+                allContacts = data;
+                console.log('Loaded', allContacts.length, 'contacts');
+                console.log('About to call updateStats, buildFilterOptions, applyFilters');
+                
+                if (allContacts.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <h3>No contacts found</h3>
+                            <p>Your Notion database appears to be empty, or no contacts match the current filters.</p>
+                            <button class="btn btn-primary" onclick="openAddModal()" style="margin-top: 12px;">Add Your First Contact</button>
+                        </div>
+                    `;
+                    updateStats(allContacts);
+                    return;
+                }
+                
+                updateStats(allContacts);
+                buildFilterOptions();
+                try {
+                    applyFilters();
+                } catch (error) {
+                    console.error('Error in applyFilters:', error);
+                    container.innerHTML = `
+                        <div class="error">
+                            <h3>Error displaying contacts</h3>
+                            <p>${error.message}</p>
+                            <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 8px;">
+                                Check the browser console (F12) for more details.
+                            </p>
+                            <button class="btn btn-primary" onclick="loadContacts()" style="margin-top: 12px;">Retry</button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading contacts:', error);
+                let errorMessage = error.message || 'Unknown error occurred';
+                
+                // Provide more helpful error messages
+                if (error.name === 'AbortError') {
+                    errorMessage = 'Request timed out. The server may not be running or is taking too long to respond.';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = 'Cannot connect to the server. Make sure the server is running on port 8000.';
+                }
+                
+                container.innerHTML = `
+                    <div class="error">
+                        <h3>Error loading contacts</h3>
+                        <p>${errorMessage}</p>
+                        <p style="font-size: 11px; color: var(--text-tertiary); margin-top: 8px;">
+                            <strong>Troubleshooting:</strong><br>
+                            • Make sure the server is running: <code>python main.py</code><br>
+                            • Check that NOTION_API_KEY and NOTION_DATABASE_ID are set in your .env file<br>
+                            • Check the browser console (F12) for more details
+                        </p>
+                        <button class="btn btn-primary" onclick="loadContacts()" style="margin-top: 12px;">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function buildFilterOptions() {
+            // Extract unique values for each filterable column
+            const statusOptions = [...new Set(allContacts.map(c => c.status).filter(Boolean))];
+            const typeOptions = [...new Set(allContacts.map(c => c.type).filter(Boolean))];
+            const groupOptions = [...new Set(allContacts.map(c => c.group).filter(Boolean))];
+            const companyOptions = [...new Set(allContacts.map(c => c.company).filter(Boolean))].sort();
+
+            // Store for filter dropdowns
+            window.filterOptions = {
+                status: statusOptions,
+                type: typeOptions,
+                group: groupOptions,
+                company: companyOptions
+            };
+        }
+
+        function toggleFilterDropdown(column, event) {
+            if (event) {
+                event.stopPropagation();
+            }
+
+            // Close other dropdowns
+            if (openFilterDropdown && openFilterDropdown !== column) {
+                closeFilterDropdown();
+            }
+
+            if (openFilterDropdown === column) {
+                closeFilterDropdown();
+                return;
+            }
+
+            openFilterDropdown = column;
+            const th = document.querySelector(`th[data-column="${column}"]`);
+            if (!th) return;
+
+            // Remove existing dropdown
+            const existing = th.querySelector('.filter-dropdown');
+            if (existing) {
+                existing.remove();
+                return;
+            }
+
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'filter-dropdown';
+            dropdown.setAttribute('data-column', column);
+            dropdown.onclick = (e) => e.stopPropagation();
+
+            const options = window.filterOptions[column] || [];
+            const activeValues = activeFilters[column] || [];
+
+            options.forEach(option => {
+                const item = document.createElement('div');
+                item.className = 'filter-dropdown-item';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `filter-${column}-${option}`;
+                checkbox.checked = activeValues.includes(option);
+                checkbox.onchange = (e) => {
+                    e.stopPropagation();
+                    toggleFilterValue(column, option);
+                };
+
+                const label = document.createElement('label');
+                label.htmlFor = `filter-${column}-${option}`;
+                label.textContent = formatFilterValue(column, option);
+
+                item.appendChild(checkbox);
+                item.appendChild(label);
+                dropdown.appendChild(item);
+            });
+
+            // Add clear button if filters are active
+            if (activeValues.length > 0) {
+                const clearItem = document.createElement('div');
+                clearItem.className = 'filter-dropdown-item';
+                clearItem.style.borderTop = '1px solid var(--border-color)';
+                clearItem.style.marginTop = '4px';
+                clearItem.style.paddingTop = '8px';
+                clearItem.textContent = 'Clear Filter';
+                clearItem.style.fontWeight = '500';
+                clearItem.onclick = (e) => {
+                    e.stopPropagation();
+                    activeFilters[column] = [];
+                    closeFilterDropdown();
+                    applyFilters();
+                };
+                dropdown.appendChild(clearItem);
+            }
+
+            th.appendChild(dropdown);
+
+            // Close on outside click
+            setTimeout(() => {
+                document.addEventListener('click', function closeOnOutsideClick(e) {
+                    if (!th.contains(e.target)) {
+                        closeFilterDropdown();
+                        document.removeEventListener('click', closeOnOutsideClick);
+                    }
+                }, { once: true });
+            }, 0);
+        }
+
+        function closeFilterDropdown() {
+            if (openFilterDropdown) {
+                const th = document.querySelector(`th[data-column="${openFilterDropdown}"]`);
+                if (th) {
+                    const dropdown = th.querySelector('.filter-dropdown');
+                    if (dropdown) dropdown.remove();
+                }
+                openFilterDropdown = null;
+            }
+        }
+
+        function toggleFilterValue(column, value) {
+            if (!activeFilters[column]) {
+                activeFilters[column] = [];
+            }
+            const index = activeFilters[column].indexOf(value);
+            if (index > -1) {
+                activeFilters[column].splice(index, 1);
+            } else {
+                activeFilters[column].push(value);
+            }
+            updateFilterIndicator(column);
+            applyFilters();
+        }
+
+        function updateFilterIndicator(column) {
+            const th = document.querySelector(`th[data-column="${column}"]`);
+            if (!th) return;
+
+            const activeValues = activeFilters[column] || [];
+            if (activeValues.length > 0) {
+                th.classList.add('filter-active');
+            } else {
+                th.classList.remove('filter-active');
+            }
+        }
+
+        function formatFilterValue(column, value) {
+            if (column === 'status') {
+                return value.replace(/_/g, ' ');
+            }
+            return value;
+        }
+
+        function applyFilters() {
+            const searchElement = document.getElementById('search');
+            if (!searchElement) {
+                console.error('Search element not found');
+                return;
+            }
+            const search = searchElement.value.toLowerCase();
+            
+            let filtered = allContacts.filter(contact => {
+                // Search filter
+                if (search) {
+                    const searchable = [
+                        contact.name || '',
+                        contact.email || '',
+                        contact.phone || '',
+                        contact.company || '',
+                        contact.notes || ''
+                    ].join(' ').toLowerCase();
+                    if (!searchable.includes(search)) {
+                        return false;
+                    }
+                }
+
+                // Status filter
+                if (activeFilters.status.length > 0) {
+                    if (!activeFilters.status.includes(contact.status)) {
+                        return false;
+                    }
+                }
+
+                // Type filter
+                if (activeFilters.type.length > 0) {
+                    if (!activeFilters.type.includes(contact.type)) {
+                        return false;
+                    }
+                }
+
+                // Group filter
+                if (activeFilters.group.length > 0) {
+                    if (!activeFilters.group.includes(contact.group)) {
+                        return false;
+                    }
+                }
+
+                // Company filter
+                if (activeFilters.company.length > 0) {
+                    if (!activeFilters.company.includes(contact.company)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            displayContacts(filtered);
+        }
+
+        function displayContacts(contacts) {
+            console.log('displayContacts called with', contacts.length, 'contacts');
+            const container = document.getElementById('contacts-container');
+            if (!container) {
+                console.error('contacts-container element not found!');
+                return;
+            }
+            
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No contacts found</h3>
+                        <p>Add your first contact to get started!</p>
+                    </div>
+                `;
+                updateStats(contacts);
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="filterable" data-column="status" onclick="toggleFilterDropdown('status', event)">
+                                Status
+                                <span class="filter-icon">🔽</span>
+                            </th>
+                            <th class="filterable" data-column="type" onclick="toggleFilterDropdown('type', event)">
+                                Type
+                                <span class="filter-icon">🔽</span>
+                            </th>
+                            <th class="filterable" data-column="group" onclick="toggleFilterDropdown('group', event)">
+                                Group
+                                <span class="filter-icon">🔽</span>
+                            </th>
+                            <th class="filterable" data-column="company" onclick="toggleFilterDropdown('company', event)">
+                                Company
+                                <span class="filter-icon">🔽</span>
+                            </th>
+                            <th>Last Contact</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            contacts.forEach(contact => {
+                const statusClass = contact.status ? `status-${contact.status}` : '';
+                const statusText = contact.status ? contact.status.replace(/_/g, ' ') : 'N/A';
+                
+                // Type badge
+                let typeBadge = '-';
+                if (contact.type) {
+                    const typeClass = contact.type === 'existing' ? 'type-existing' : 'type-2026_new';
+                    const typeText = contact.type === '2026_new' ? '2026 New' : 'Existing';
+                    typeBadge = `<span class="type-badge ${typeClass}">${typeText}</span>`;
+                }
+                
+                // Group badge
+                let groupBadge = '-';
+                if (contact.group) {
+                    // Normalize group name for class matching
+                    const groupLower = contact.group.toLowerCase();
+                    let groupClass = 'group-other';
+                    if (groupLower === 'fam') groupClass = 'group-fam';
+                    else if (groupLower === 'mck' || groupLower === 'mckinsey') groupClass = 'group-McK';
+                    else if (groupLower === 'pea' || groupLower === 'phillips exeter academy') groupClass = 'group-PEA';
+                    else if (groupLower === 'gu' || groupLower === 'georgetown' || groupLower === 'georgetown university') groupClass = 'group-GU';
+                    else if (groupLower === 'bp' || groupLower === 'berkshire partners') groupClass = 'group-BP';
+                    else if (groupLower === 'mba') groupClass = 'group-MBA';
+                    else if (groupLower === 'mvnx') groupClass = 'group-MVNX';
+                    else if (groupLower === 'other') groupClass = 'group-other';
+                    
+                    groupBadge = `<span class="group-badge ${groupClass}">${contact.group}</span>`;
+                }
+                
+                html += `
+                    <tr>
+                        <td><strong style="cursor: pointer; color: var(--text-primary); text-decoration: underline;" onclick="viewContactDetails('${contact.id}')" title="Click to view details">${contact.name || 'N/A'}</strong></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td>${typeBadge}</td>
+                        <td>${groupBadge}</td>
+                        <td>${contact.company || '-'}</td>
+                        <td>${contact.last_contact_date || '-'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-primary btn-small" onclick="editContact('${contact.id}')">Edit</button>
+                                <button class="btn btn-secondary btn-small" onclick="openSendModal('${contact.id}')">Send</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            updateStats(contacts);
+            
+            // Update filter indicators after rendering
+            Object.keys(activeFilters).forEach(column => {
+                updateFilterIndicator(column);
+            });
+        }
+
+        function updateStats(contacts) {
+            // Get current month name
+            const now = new Date();
+            const currentMonth = now.toLocaleString('default', { month: 'long' });
+            const currentYear = now.getFullYear();
+            document.getElementById('this-month-title').textContent = `${currentMonth} ${currentYear} Stats`;
+
+            // Calculate 2026 stats (all contacts with last_contact_date in 2026)
+            const contacts2026 = contacts.filter(c => {
+                if (!c.last_contact_date) return false;
+                const date = new Date(c.last_contact_date);
+                return date.getFullYear() === 2026;
+            });
+
+            // Calculate this month stats
+            const contactsThisMonth = contacts.filter(c => {
+                if (!c.last_contact_date) return false;
+                const date = new Date(c.last_contact_date);
+                return date.getFullYear() === currentYear && date.getMonth() === now.getMonth();
+            });
+
+            // Outbounds = contacted + scheduled + done + ghosted + circle_back
+            const outboundStatuses = ['contacted', 'scheduled', 'done', 'ghosted', 'circle_back'];
+            
+            const outbounds2026 = contacts2026.filter(c => outboundStatuses.includes(c.status)).length;
+            const calls2026 = contacts2026.filter(c => c.status === 'done').length;
+
+            const outboundsMonth = contactsThisMonth.filter(c => outboundStatuses.includes(c.status)).length;
+            const callsMonth = contactsThisMonth.filter(c => c.status === 'done').length;
+
+            document.getElementById('stat-2026-outbounds').textContent = outbounds2026;
+            document.getElementById('stat-2026-calls').textContent = calls2026;
+            document.getElementById('stat-month-outbounds').textContent = outboundsMonth;
+            document.getElementById('stat-month-calls').textContent = callsMonth;
+        }
+
+        function filterByStatus(status) {
+            activeFilters.status = [status];
+            updateFilterIndicator('status');
+            applyFilters();
+        }
+
+        function clearFilters() {
+            document.getElementById('search').value = '';
+            activeFilters = {
+                status: [],
+                type: [],
+                group: [],
+                company: []
+            };
+            Object.keys(activeFilters).forEach(column => {
+                updateFilterIndicator(column);
+            });
+            closeFilterDropdown();
+            applyFilters();
+        }
+
+        function openAddModal() {
+            document.getElementById('modalTitle').textContent = 'Add Contact';
+            document.getElementById('contactForm').reset();
+            document.getElementById('contactId').value = '';
+            // Hide delete button in add mode
+            document.getElementById('deleteContactBtn').style.display = 'none';
+            document.getElementById('contactModal').classList.add('active');
+        }
+
+        function deleteContactFromModal() {
+            const contactId = document.getElementById('deleteContactBtn').getAttribute('data-contact-id');
+            if (!contactId) return;
+            
+            if (!confirm('Are you sure you want to delete this contact?')) {
+                return;
+            }
+
+            deleteContact(contactId);
+        }
+
+        function normalizeGroupValue(groupValue) {
+            // Normalize group value to match select options (case-insensitive)
+            if (!groupValue) return '';
+            const groupLower = groupValue.toLowerCase();
+            const groupMap = {
+                'fam': 'fam',
+                'family': 'fam',
+                'mck': 'McK',
+                'mckinsey': 'McK',
+                'pea': 'PEA',
+                'phillips exeter academy': 'PEA',
+                'gu': 'GU',
+                'georgetown': 'GU',
+                'georgetown university': 'GU',
+                'bp': 'BP',
+                'berkshire partners': 'BP',
+                'mba': 'MBA',
+                'mvnx': 'MVNX',
+                'other': 'other'
+            };
+            // Try exact match first
+            if (groupMap[groupLower]) {
+                return groupMap[groupLower];
+            }
+            // Try partial match
+            for (const [key, value] of Object.entries(groupMap)) {
+                if (groupLower.includes(key) || key.includes(groupLower)) {
+                    return value;
+                }
+            }
+            // If no match, return original (might be a new group value)
+            return groupValue;
+        }
+
+        async function editContact(id) {
+            // Fetch fresh contact data from API to ensure we have all fields
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${id}`);
+                if (!response.ok) {
+                    showMessage('Contact not found', 'error');
+                    return;
+                }
+                const contact = await response.json();
+
+                document.getElementById('modalTitle').textContent = 'Edit Contact';
+                document.getElementById('contactId').value = contact.id;
+                document.getElementById('name').value = contact.name || '';
+                document.getElementById('email').value = contact.email || '';
+                document.getElementById('phone').value = contact.phone || '';
+                document.getElementById('form_status').value = contact.status || 'queued';
+                document.getElementById('form_type').value = contact.type || '';
+                // Normalize group value to match select options
+                document.getElementById('form_group').value = normalizeGroupValue(contact.group) || '';
+                document.getElementById('title').value = contact.title || '';
+                document.getElementById('company').value = contact.company || '';
+                document.getElementById('industry').value = contact.industry || '';
+                document.getElementById('location').value = contact.location || '';
+                document.getElementById('linkedin_url').value = contact.linkedin_url || '';
+                document.getElementById('notes').value = contact.notes || '';
+
+                // Show delete button in edit mode
+                document.getElementById('deleteContactBtn').style.display = 'inline-flex';
+                document.getElementById('deleteContactBtn').setAttribute('data-contact-id', contact.id);
+
+                document.getElementById('contactModal').classList.add('active');
+            } catch (error) {
+                showMessage(`Error loading contact: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('contactModal').classList.remove('active');
+        }
+
+        async function saveContact(event) {
+            event.preventDefault();
+            
+            const id = document.getElementById('contactId').value;
+            const contactData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                status: document.getElementById('form_status').value,
+                type: document.getElementById('form_type').value || null,
+                group: document.getElementById('form_group').value || null,
+                title: document.getElementById('title').value || null,
+                company: document.getElementById('company').value || null,
+                industry: document.getElementById('industry').value || null,
+                location: document.getElementById('location').value || null,
+                linkedin_url: document.getElementById('linkedin_url').value || null,
+                notes: document.getElementById('notes').value || null,
+            };
+
+            // Remove null/empty values
+            Object.keys(contactData).forEach(key => {
+                if (contactData[key] === '' || contactData[key] === null) {
+                    delete contactData[key];
+                }
+            });
+
+            try {
+                const url = id ? `${API_BASE}/contacts/${id}` : `${API_BASE}/contacts`;
+                const method = id ? 'PATCH' : 'POST';
+                
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to save contact');
+                }
+
+                showMessage(id ? 'Contact updated successfully!' : 'Contact created successfully!', 'success');
+                closeModal();
+                loadContacts();
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteContact(id) {
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to delete contact');
+                }
+
+                showMessage('Contact deleted successfully!', 'success');
+                closeModal();
+                loadContacts();
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Map group abbreviations to full names (use natural, shorter names)
+        function getGroupFullName(group) {
+            if (!group) return null;
+            const groupMap = {
+                'BP': 'Berkshire',  // Not "Berkshire Partners"
+                'PEA': 'Exeter',     // Not "Phillips Exeter Academy"
+                'GU': 'Georgetown',  // Not "Georgetown University"
+                'McK': 'McKinsey',
+                'MBA': 'HBS',
+                'MVNX': 'MVNX',
+                'fam': 'family'
+            };
+            return groupMap[group] || group;
+        }
+
+        // Extract key details from notes for personalization
+        function extractPersonalizationFromNotes(notes) {
+            if (!notes) return null;
+            // Look for key phrases that indicate topics, interests, or context
+            const noteText = notes.toLowerCase();
+            const personalization = {
+                topics: [],
+                interests: [],
+                context: notes, // Full notes for context
+                mutualConnections: [],
+                specificAdvice: null
+            };
+            
+            // Extract potential topics (AI, investing, etc.)
+            const topicKeywords = [
+                { keyword: 'ai', display: 'AI' },
+                { keyword: 'artificial intelligence', display: 'AI' },
+                { keyword: 'investing', display: 'investing' },
+                { keyword: 'venture capital', display: 'venture capital' },
+                { keyword: 'startup', display: 'startups' },
+                { keyword: 'founder', display: 'founding' },
+                { keyword: 'founded', display: 'founding' },
+                { keyword: 'business', display: 'entrepreneurship' },
+                { keyword: 'entrepreneur', display: 'entrepreneurship' },
+                { keyword: 'board', display: 'boards' },
+                { keyword: 'transition', display: 'transitions' }
+            ];
+            
+            topicKeywords.forEach(({ keyword, display }) => {
+                if (noteText.includes(keyword) && !personalization.topics.includes(display)) {
+                    personalization.topics.push(display);
+                }
+            });
+            
+            // Extract mutual connections (common names)
+            const commonNames = ['vivek', 'robert', 'will', 'charlie', 'adi', 'phillip'];
+            commonNames.forEach(name => {
+                if (noteText.includes(name)) {
+                    personalization.mutualConnections.push(name.charAt(0).toUpperCase() + name.slice(1));
+                }
+            });
+            
+            // Look for specific advice or quotes in notes (often in quotes or after "said")
+            const adviceMatch = notes.match(/(?:said|mentioned|advised|suggested)[^.]{0,100}/i);
+            if (adviceMatch) {
+                personalization.specificAdvice = adviceMatch[0].trim();
+            }
+            
+            return personalization;
+        }
+
+        // Determine if this is a new or existing contact
+        function isNewContact(contact) {
+            // If type is 'existing', it's not new
+            if (contact.type === 'existing') {
+                return false;
+            }
+            // If type is '2026_new' but has last_contact_date, treat as existing
+            if (contact.type === '2026_new' && contact.last_contact_date) {
+                return false;
+            }
+            // If type is '2026_new' and no last_contact_date, it's new
+            if (contact.type === '2026_new' && !contact.last_contact_date) {
+                return true;
+            }
+            // Default: if no type specified, check last_contact_date
+            return !contact.last_contact_date;
+        }
+
+        // Determine formality level based on title and company
+        function isFormalContact(contact) {
+            if (!contact.title) return false;
+            const titleLower = contact.title.toLowerCase();
+            const companyLower = (contact.company || '').toLowerCase();
+            
+            // Check for senior roles
+            if (titleLower.includes('senior partner') || 
+                titleLower.includes('managing director') ||
+                titleLower.includes('ceo') ||
+                titleLower.includes('president') ||
+                titleLower.includes('c-level') ||
+                titleLower.includes('chief')) {
+                return true;
+            }
+            
+            // Check for prestigious companies
+            if (companyLower.includes('mckinsey') || 
+                companyLower.includes('bain') || 
+                companyLower.includes('bcg') ||
+                companyLower.includes('goldman') ||
+                companyLower.includes('morgan stanley')) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Generate personalized connection context (DEPRECATED - now handled inline)
+        function generateConnectionContext(contact, isNew) {
+            // This function is kept for backwards compatibility but is no longer used
+            // Draft generation now happens inline in openSendModal
+            return '';
+        }
+
+        // Generate personalized interest/topic from notes and profile (DEPRECATED - now handled inline)
+        function generateInterestContext(contact, isNew) {
+            // This function is kept for backwards compatibility but is no longer used
+            // Draft generation now happens inline in openSendModal
+            return '';
+        }
+
+        // Calculate days since last contact
+        function getDaysSinceLastContact(contact) {
+            if (!contact.last_contact_date) return null;
+            const lastContact = new Date(contact.last_contact_date);
+            const now = new Date();
+            const diffTime = Math.abs(now - lastContact);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // Check if it's been more than 6 months since last contact
+        function isLongTimeSinceContact(contact) {
+            const daysSince = getDaysSinceLastContact(contact);
+            return daysSince !== null && daysSince > 180; // 6 months = ~180 days
+        }
+
+        // Generate personalized content based on contact data and time
+        function generatePersonalizedContent(contact, isNew, messageType, timeVariation = 0) {
+            const firstName = contact.name ? contact.name.split(' ')[0] : 'there';
+            const groupFullName = getGroupFullName(contact.group);
+            const notes = extractPersonalizationFromNotes(contact.notes);
+            const notesText = (contact.notes || '').toLowerCase();
+            
+            // Personalization data
+            const personalization = {
+                firstName: firstName,
+                group: groupFullName || contact.group || '',
+                company: contact.company || '',
+                title: contact.title || '',
+                location: contact.location || '',
+                industry: contact.industry || '',
+                notes: notes,
+                notesText: notesText,
+                // Time-based variation seed (0 = first time, 1+ = variations)
+                variation: timeVariation
+            };
+
+            // Extract specific observation from notes
+            personalization.specificObservation = '';
+            if (notesText.includes('cornerstone') || notesText.includes('found') || notesText.includes('founded')) {
+                if (timeVariation === 0) {
+                    personalization.specificObservation = 'Saw your path from Cornerstone to starting your own ventures—rare to see that jump.';
+                } else {
+                    personalization.specificObservation = 'Noticed your transition from consulting to building companies—would love to learn from that experience.';
+                }
+            } else if (notesText.includes('built') || notesText.includes('business')) {
+                if (timeVariation === 0) {
+                    personalization.specificObservation = `Noticed you've built multiple businesses—would love to learn from that experience.`;
+                } else {
+                    personalization.specificObservation = `Your experience building ${contact.company || 'companies'} stands out.`;
+                }
+            } else if (notesText.includes('transition') || notesText.includes('moved')) {
+                personalization.specificObservation = `Noticed your transition into ${contact.industry || 'a new role'}—would value your perspective on that path.`;
+            } else if (contact.company) {
+                personalization.specificObservation = `Came across your background at ${contact.company} and thought you'd be great to talk to.`;
+            } else {
+                personalization.specificObservation = `Came across your profile and thought you'd be great to talk to.`;
+            }
+
+            // Generate one-line identity
+            personalization.oneLineIdentity = '';
+            if (contact.group === 'PEA') {
+                personalization.oneLineIdentity = 'an Exeter alum currently exploring my next chapter';
+            } else if (contact.group === 'GU') {
+                personalization.oneLineIdentity = `a Georgetown alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+            } else if (contact.group === 'McK') {
+                personalization.oneLineIdentity = `a McKinsey alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+            } else if (contact.group === 'MBA') {
+                personalization.oneLineIdentity = `an HBS admit currently exploring opportunities in ${contact.industry || 'strategy'}`;
+            } else if (groupFullName) {
+                personalization.oneLineIdentity = `a ${groupFullName} alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+            } else {
+                personalization.oneLineIdentity = `currently exploring opportunities in ${contact.industry || 'strategy'}`;
+            }
+
+            // Generate topic
+            personalization.topic = '';
+            if (notesText.includes('ai') || notesText.includes('artificial intelligence')) {
+                personalization.topic = 'developing AI capability';
+            } else if (notesText.includes('startup') || notesText.includes('founder')) {
+                personalization.topic = 'starting a business';
+            } else if (notesText.includes('operator')) {
+                personalization.topic = 'operator paths';
+            } else if (notesText.includes('investor') || notesText.includes('vc')) {
+                personalization.topic = 'investing and venture capital';
+            } else if (contact.industry) {
+                personalization.topic = `opportunities in ${contact.industry}`;
+            } else {
+                personalization.topic = 'my next chapter';
+            }
+
+            return personalization;
+        }
+
+        // Generate formal email based on new template structure
+        function generateFormalEmail(contact, personalization) {
+            const groupName = personalization.group || 'alumni';
+            const subject = groupName !== '' ? `${groupName}-Alum Hoping to Connect` : 'Hoping to Connect';
+            
+            // Format specific observation (ensure it's a complete thought)
+            let observation = personalization.specificObservation;
+            if (!observation.endsWith('.') && !observation.endsWith('!')) {
+                observation = observation + '.';
+            }
+            // Make first letter lowercase for smooth sentence flow
+            observation = observation.charAt(0).toLowerCase() + observation.slice(1);
+            
+            const body = `Hi ${personalization.firstName},
+
+I came across your background through the ${groupName || 'alumni'} network and wanted to reach out given the shared connection. I'm currently ${personalization.oneLineIdentity}, and ${observation}
+
+As I think through my next chapter, I'd value your perspective on ${personalization.topic}.
+
+Would you happen to have time to connect sometime in the coming weeks? I'm happy to work around your schedule.
+
+Best,
+Taylor`;
+
+            return { subject, body };
+        }
+
+        // Generate casual email based on new template structure
+        function generateCasualEmail(contact, personalization, timeVariation) {
+            const subject = 'Catching up';
+            
+            // Vary the opening based on time since last contact
+            let opening = '';
+            if (timeVariation === 0) {
+                opening = `It's been a while since we last connected, and I wanted to reach out to see how you've been doing. Would love to hear what you've been up to and reconnect.`;
+            } else {
+                opening = `Been thinking about our last conversation and wanted to reach out. Hope you've been doing well.`;
+            }
+
+            // Vary the topic reference
+            let topicRef = '';
+            if (personalization.topic && timeVariation === 0) {
+                topicRef = `, and I'd especially enjoy getting your perspective on ${personalization.topic}`;
+            } else if (contact.company && timeVariation > 0) {
+                topicRef = `, and would love to hear how things are going at ${contact.company}`;
+            }
+
+            const body = `Hi ${personalization.firstName},
+
+${opening}
+
+If you're open to it, it would be great to find time to catch up sometime in the coming weeks${topicRef}.
+
+Hope all is well on your end and look forward to reconnecting.
+
+Best,
+Taylor`;
+
+            return { subject, body };
+        }
+
+        // Generate formal text based on new template structure
+        function generateFormalText(contact, personalization) {
+            const groupName = personalization.group || 'alumni';
+            const sharedConnection = groupName !== '' ? `the ${groupName} network` : 'a mutual connection';
+            
+            const text = `Hi ${personalization.firstName}, this is Taylor Walshe. We haven't met, but I came across your background through ${sharedConnection} and wanted to reach out. I'd love to get your perspective on ${personalization.topic} and hear about your experience with ${personalization.company || personalization.title || 'your work'}. Any chance you'd be open to a quick call in the coming weeks? Happy to work around your schedule.`;
+
+            return text;
+        }
+
+        // Generate casual text based on new template structure
+        function generateCasualText(contact, personalization, timeVariation) {
+            // Vary the opening based on time and available data
+            let opening = '';
+            if (timeVariation === 0) {
+                if (personalization.location) {
+                    opening = `Hope ${personalization.location} is treating you well.`;
+                } else if (contact.company) {
+                    opening = `Hope things are going well at ${contact.company}.`;
+                } else {
+                    opening = `Hope all is well.`;
+                }
+            } else {
+                // For longer time gaps, acknowledge the time
+                const daysSince = getDaysSinceLastContact(contact);
+                if (daysSince > 365) {
+                    opening = `Been way too long since we last connected.`;
+                } else {
+                    opening = `It's been too long.`;
+                }
+            }
+
+            const text = `${personalization.firstName}! ${opening} Would love to catch up and hear what you've been up to. Any chance you're free for a quick call sometime in the next few days?`;
+
+            return text;
+        }
+
+        function openSendModal(contactId) {
+            const contact = allContacts.find(c => c.id === contactId);
+            if (!contact) {
+                showMessage('Contact not found', 'error');
+                return;
+            }
+
+            // Determine message type based on contact info (following channel rules)
+            const hasEmail = contact.email && contact.email.trim() !== '';
+            const hasPhone = contact.phone && contact.phone.trim() !== '';
+            
+            let messageType = 'email';
+            if (hasPhone && hasEmail) {
+                // Both available - default to text
+                messageType = 'text';
+            } else if (hasPhone) {
+                messageType = 'text';
+            } else if (hasEmail) {
+                messageType = 'email';
+            } else {
+                // Neither - default to email
+                messageType = 'email';
+            }
+
+            // Determine if this is a new or existing contact
+            const isNew = isNewContact(contact);
+            
+            // Calculate time variation (0 = first time, 1+ = variations for same person over time)
+            let timeVariation = 0;
+            if (!isNew && contact.last_contact_date) {
+                const daysSince = getDaysSinceLastContact(contact);
+                // If it's been more than 6 months, use variation 1
+                if (daysSince > 180) {
+                    timeVariation = 1;
+                }
+                // If it's been more than a year, use variation 2
+                if (daysSince > 365) {
+                    timeVariation = 2;
+                }
+            }
+
+            // Generate personalized content
+            const personalization = generatePersonalizedContent(contact, isNew, messageType, timeVariation);
+            
+            let draftContent = '';
+
+            if (messageType === 'email') {
+                document.getElementById('sendModalTitle').textContent = 'Draft Email';
+                document.getElementById('draftType').textContent = `To: ${contact.email || 'No email'}`;
+                
+                if (isNew) {
+                    // NEW OUTREACH - Use formal template
+                    const email = generateFormalEmail(contact, personalization);
+                    draftContent = `Subject: ${email.subject}\n\n${email.body}`;
+                } else {
+                    // EXISTING CONTACT - Use casual template
+                    const email = generateCasualEmail(contact, personalization, timeVariation);
+                    draftContent = `Subject: ${email.subject}\n\n${email.body}`;
+                }
+            } else {
+                // TEXT MESSAGE
+                document.getElementById('sendModalTitle').textContent = 'Draft Text Message';
+                document.getElementById('draftType').textContent = `To: ${contact.phone || 'No phone'}`;
+                
+                if (isNew && contact.type === '2026_new') {
+                    // NEW CONTACT - Use formal text template
+                    draftContent = generateFormalText(contact, personalization);
+                } else {
+                    // EXISTING CONTACT - Use casual text template
+                    draftContent = generateCasualText(contact, personalization, timeVariation);
+                }
+            }
+
+            document.getElementById('draftContent').textContent = draftContent;
+            document.getElementById('sendModal').classList.add('active');
+        }
+
+        function closeSendModal() {
+            document.getElementById('sendModal').classList.remove('active');
+        }
+
+        function copyDraft() {
+            const draftContent = document.getElementById('draftContent').textContent;
+            navigator.clipboard.writeText(draftContent).then(() => {
+                showMessage('Draft copied to clipboard!', 'success');
+            }).catch(err => {
+                showMessage('Failed to copy to clipboard', 'error');
+            });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        let currentViewContactId = null;
+
+        async function viewContactDetails(contactId) {
+            currentViewContactId = contactId;
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${contactId}`);
+                if (!response.ok) {
+                    showMessage('Contact not found', 'error');
+                    return;
+                }
+                const contact = await response.json();
+
+                document.getElementById('viewDetailsTitle').textContent = contact.name || 'Contact Details';
+                
+                // Format status and type for display
+                const statusText = contact.status ? contact.status.replace(/_/g, ' ') : 'N/A';
+                const statusClass = contact.status ? `status-${contact.status}` : '';
+                const typeText = contact.type === '2026_new' ? '2026 New' : (contact.type || 'N/A');
+                const typeClass = contact.type === 'existing' ? 'type-existing' : 'type-2026_new';
+                
+                // Format group
+                let groupDisplay = contact.group || 'N/A';
+                
+                // Build the details HTML
+                let detailsHTML = `
+                    <div style="display: grid; gap: 16px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <div><span class="status-badge ${statusClass}">${statusText}</span></div>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <div><span class="type-badge ${typeClass}">${typeText}</span></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <div style="color: var(--text-primary);">${contact.email || '-'}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <div style="color: var(--text-primary);">${contact.phone || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Group</label>
+                                <div style="color: var(--text-primary);">${groupDisplay}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Relationship Type</label>
+                                <div style="color: var(--text-primary);">${contact.relationship_type || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Role</label>
+                                <div style="color: var(--text-primary);">${contact.title || '-'}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Company</label>
+                                <div style="color: var(--text-primary);">${contact.company || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Industry</label>
+                                <div style="color: var(--text-primary);">${contact.industry || '-'}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <div style="color: var(--text-primary);">${contact.location || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <div style="color: var(--text-primary);">
+                                ${contact.linkedin_url ? `<a href="${contact.linkedin_url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">${contact.linkedin_url}</a>` : '-'}
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Last Contact Date</label>
+                                <div style="color: var(--text-primary);">${contact.last_contact_date || '-'}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Next Followup Date</label>
+                                <div style="color: var(--text-primary);">${contact.next_followup_date || '-'}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Days at Current Status</label>
+                                <div style="color: var(--text-primary);">${contact.days_at_current_status || 0}</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Call Count</label>
+                                <div style="color: var(--text-primary);">${contact.call_count || 0}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <div style="color: var(--text-primary); white-space: pre-wrap; background: var(--bg-tertiary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); min-height: 60px;">
+                                ${contact.notes || '-'}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Followup Context</label>
+                            <div style="color: var(--text-primary); white-space: pre-wrap; background: var(--bg-tertiary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); min-height: 60px;">
+                                ${contact.followup_context || '-'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('viewDetailsContent').innerHTML = detailsHTML;
+                document.getElementById('viewDetailsModal').classList.add('active');
+            } catch (error) {
+                showMessage(`Error loading contact: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        function closeViewDetailsModal() {
+            document.getElementById('viewDetailsModal').classList.remove('active');
+            currentViewContactId = null;
+        }
+
+        function editFromViewDetails() {
+            if (currentViewContactId) {
+                closeViewDetailsModal();
+                editContact(currentViewContactId);
+            }
+        }
+
+        function sendFromViewDetails() {
+            if (currentViewContactId) {
+                closeViewDetailsModal();
+                openSendModal(currentViewContactId);
+            }
+        }
+
+        // Load contacts on page load
+        loadContacts();
+    </script>
+</body>
+</html>
