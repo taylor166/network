@@ -1699,6 +1699,11 @@
         }
 
         // Generate personalized content based on contact data and time
+        // NOTE: All generated messages must follow the 4 Composition Rules:
+        // 1. Once-Only Rule: Never use the same key noun/phrase twice (check before finalizing)
+        // 2. Update-First Logic: For existing contacts, include personal update before ask
+        // 3. Group Name Safety: Only reference network if Group is valid (not 'Other' or blank)
+        // 4. CTA Standard: Email uses "15 mins" or "brief call", Text uses "10-minute call" or "quick call in coming days"
         function generatePersonalizedContent(contact, isNew, messageType, timeVariation = 0) {
             const firstName = contact.name ? contact.name.split(' ')[0] : 'there';
             const groupFullName = getGroupFullName(contact.group);
@@ -1741,20 +1746,20 @@
                 personalization.specificObservation = `Came across your profile and thought you'd be great to talk to.`;
             }
 
-            // Generate one-line identity
+            // Generate one-line identity (for cold intro emails)
             personalization.oneLineIdentity = '';
             if (contact.group === 'PEA') {
-                personalization.oneLineIdentity = 'an Exeter alum currently exploring my next chapter';
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             } else if (contact.group === 'GU') {
-                personalization.oneLineIdentity = `a Georgetown alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             } else if (contact.group === 'McK') {
-                personalization.oneLineIdentity = `a McKinsey alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             } else if (contact.group === 'MBA') {
-                personalization.oneLineIdentity = `an HBS admit currently exploring opportunities in ${contact.industry || 'strategy'}`;
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             } else if (groupFullName) {
-                personalization.oneLineIdentity = `a ${groupFullName} alum currently exploring opportunities in ${contact.industry || 'strategy'}`;
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             } else {
-                personalization.oneLineIdentity = `currently exploring opportunities in ${contact.industry || 'strategy'}`;
+                personalization.oneLineIdentity = 'heading to Stanford for my MBA this fall';
             }
 
             // Generate topic
@@ -1776,100 +1781,100 @@
             return personalization;
         }
 
-        // Generate formal email based on new template structure
+        // Generate formal email (Cold Intro) based on new template structure
         function generateFormalEmail(contact, personalization) {
-            const groupName = personalization.group || 'alumni';
-            const subject = groupName !== '' ? `${groupName}-Alum Hoping to Connect` : 'Hoping to Connect';
+            // Group Name Safety Filter: If Group is 'Other' or blank, don't reference network
+            const groupName = personalization.group || '';
+            const isValidGroup = groupName && groupName !== 'Other' && groupName !== 'other' && groupName !== '';
             
-            // Format specific observation (ensure it's a complete thought)
-            let observation = personalization.specificObservation;
-            if (!observation.endsWith('.') && !observation.endsWith('!')) {
-                observation = observation + '.';
-            }
-            // Make first letter lowercase for smooth sentence flow
-            observation = observation.charAt(0).toLowerCase() + observation.slice(1);
-            
-            const body = `Hi ${personalization.firstName},
-
-I came across your background through the ${groupName || 'alumni'} network and wanted to reach out given the shared connection. I'm currently ${personalization.oneLineIdentity}, and ${observation}
-
-As I think through my next chapter, I'd value your perspective on ${personalization.topic}.
-
-Would you happen to have time to connect sometime in the coming weeks? I'm happy to work around your schedule.
-
-Best,
-Taylor`;
-
-            return { subject, body };
-        }
-
-        // Generate casual email based on new template structure
-        function generateCasualEmail(contact, personalization, timeVariation) {
-            const subject = 'Catching up';
-            
-            // Vary the opening based on time since last contact
-            let opening = '';
-            if (timeVariation === 0) {
-                opening = `It's been a while since we last connected, and I wanted to reach out to see how you've been doing. Would love to hear what you've been up to and reconnect.`;
+            // Build subject line: Group Name / Topic
+            let subject = '';
+            if (isValidGroup) {
+                subject = `${groupName} / ${personalization.topic || 'Starting Businesses'}`;
             } else {
-                opening = `Been thinking about our last conversation and wanted to reach out. Hope you've been doing well.`;
+                subject = `${personalization.industry || 'Hoping to Connect'} / ${personalization.topic || 'Starting Businesses'}`;
             }
-
-            // Vary the topic reference
-            let topicRef = '';
-            if (personalization.topic && timeVariation === 0) {
-                topicRef = `, and I'd especially enjoy getting your perspective on ${personalization.topic}`;
-            } else if (contact.company && timeVariation > 0) {
-                topicRef = `, and would love to hear how things are going at ${contact.company}`;
+            
+            // Get previous company/role from notes or use company
+            let previousCompany = '';
+            if (personalization.notesText.includes('cornerstone')) {
+                previousCompany = 'Cornerstone';
+            } else if (personalization.notesText.includes('mckinsey')) {
+                previousCompany = 'McKinsey';
+            } else if (contact.company) {
+                previousCompany = contact.company;
+            } else {
+                previousCompany = 'your previous role';
             }
-
-            const body = `Hi ${personalization.firstName},
-
-${opening}
-
-If you're open to it, it would be great to find time to catch up sometime in the coming weeks${topicRef}.
-
-Hope all is well on your end and look forward to reconnecting.
-
-Best,
-Taylor`;
+            
+            // Get current company/role - try to infer from notes or use company
+            let currentCompany = '';
+            if (personalization.notesText.includes('founded') || personalization.notesText.includes('founding')) {
+                currentCompany = 'founding your own ventures';
+            } else if (contact.company) {
+                currentCompany = contact.company;
+            } else {
+                currentCompany = 'your current role';
+            }
+            
+            // Build one-line identity and current focus
+            const oneLineIdentity = personalization.oneLineIdentity || 'heading to Stanford for my MBA this fall';
+            const currentFocus = personalization.notesText.includes('ai') ? 'building AI automation consulting' :
+                               personalization.notesText.includes('startup') ? 'exploring startup opportunities' :
+                               'building AI automation consulting';
+            
+            // Build topic with "vibe check" language
+            const topic = personalization.topic || 'making that jump into entrepreneurship';
+            
+            // Build body with proper email structure (paragraphs, line breaks, more context)
+            let body = '';
+            if (isValidGroup) {
+                // With group reference - more natural email flow
+                body = `Hi ${personalization.firstName} – \n\nSaw your path from ${previousCompany} to ${currentCompany}. I'm a ${groupName} alum ${oneLineIdentity} and I'm currently focused on ${currentFocus}.\n\nWould love to get your "vibe check" on ${topic}. Do you have 15 mins this month?\n\nBest,\nTaylor`;
+            } else {
+                // Without group reference (Group is 'Other' or blank) - more natural email flow
+                const industry = contact.industry || personalization.industry || 'the industry';
+                body = `Hi ${personalization.firstName} – \n\nI came across your background while researching ${industry} and saw your path from ${previousCompany} to ${currentCompany}. I'm currently ${oneLineIdentity} and I'm focused on ${currentFocus}.\n\nWould love to get your "vibe check" on ${topic}. Do you have 15 mins this month?\n\nBest,\nTaylor`;
+            }
 
             return { subject, body };
         }
 
-        // Generate formal text based on new template structure
-        function generateFormalText(contact, personalization) {
-            const groupName = personalization.group || 'alumni';
-            const sharedConnection = groupName !== '' ? `the ${groupName} network` : 'a mutual connection';
+        // Generate casual email (Reconnect) based on new template structure
+        function generateCasualEmail(contact, personalization, timeVariation) {
+            // Update-First Logic: Always include personal update for existing contacts
+            const personalUpdate = "I'm heading to Stanford for business school later this year";
             
-            const text = `Hi ${personalization.firstName}, this is Taylor Walshe. We haven't met, but I came across your background through ${sharedConnection} and wanted to reach out. I'd love to get your perspective on ${personalization.topic} and hear about your experience with ${personalization.company || personalization.title || 'your work'}. Any chance you'd be open to a quick call in the coming weeks? Happy to work around your schedule.`;
+            // Build subject: Catching up / Update Topic
+            const subject = "Catching up / Stanford update";
+            
+            // Get company and industry with fallbacks
+            const company = contact.company || personalization.company || 'your company';
+            const industry = contact.industry || personalization.industry || 'industry';
+            
+            // Build body with proper email structure (paragraphs, line breaks)
+            const body = `Hi ${personalization.firstName} – \n\nIt's been a while! Wanted to share a quick update that ${personalUpdate}.\n\nBefore I head out, I'd love to hear how things are at ${company} and get your pulse on the ${industry} space. You free for a brief call next week?\n\nBest,\nTaylor`;
+
+            return { subject, body };
+        }
+
+        // Generate formal text (Cold Intro) based on new template structure
+        function generateFormalText(contact, personalization) {
+            // Text CTA Standard: "Would you be open to a 10-minute call in the coming weeks?"
+            const industry = contact.industry || personalization.industry || 'your industry';
+            const topic = personalization.topic || 'developing AI capability';
+            
+            const text = `Hi ${personalization.firstName}, this is Taylor Walshe. We haven't met, but I've been following your work in ${industry}. I'd love to get your perspective on ${topic}. Would you be open to a 10-minute call in the coming weeks?`;
 
             return text;
         }
 
-        // Generate casual text based on new template structure
+        // Generate casual text (Reconnect) based on new template structure
         function generateCasualText(contact, personalization, timeVariation) {
-            // Vary the opening based on time and available data
-            let opening = '';
-            if (timeVariation === 0) {
-                if (personalization.location) {
-                    opening = `Hope ${personalization.location} is treating you well.`;
-                } else if (contact.company) {
-                    opening = `Hope things are going well at ${contact.company}.`;
-                } else {
-                    opening = `Hope all is well.`;
-                }
-            } else {
-                // For longer time gaps, acknowledge the time
-                const daysSince = getDaysSinceLastContact(contact);
-                if (daysSince > 365) {
-                    opening = `Been way too long since we last connected.`;
-                } else {
-                    opening = `It's been too long.`;
-                }
-            }
-
-            const text = `${personalization.firstName}! ${opening} Would love to catch up and hear what you've been up to. Any chance you're free for a quick call sometime in the next few days?`;
+            // Text CTA Standard: "Let me know if you're free for a quick call in the coming days, looking forward to it!"
+            const location = personalization.location || contact.location || 'there';
+            
+            const text = `${personalization.firstName}! Hope ${location} is treating you well. Been too long—would love to catch up and hear what you've been up to. Let me know if you're free for a quick call in the coming days, looking forward to it!`;
 
             return text;
         }

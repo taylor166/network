@@ -22,49 +22,92 @@
 
 ---
 
+## CRITICAL COMPOSITION RULES
+
+### 1. The "Once-Only" Rule
+**Instruction:** Never use the same key noun or phrase (e.g., 'next chapter', 'transition', 'reconnect') more than once in the same message. If you find a duplicate, use a synonym or delete the sentence.
+
+**Examples of duplicates to avoid:**
+- Using "transition" twice → use "shift" or "move" for the second instance
+- Using "reconnect" twice → use "catch up" or "touch base" for the second instance
+- Using "perspective" twice → use "take" or "view" for the second instance
+
+### 2. The "Update-First" Logic (For Existing Contacts)
+**Instruction:** When Status is "existing" OR Type is "existing", always include a one-sentence personal update before the ask.
+
+**Current Update:** "Heading to Stanford for business school this fall."
+
+**Format:** Place the update immediately after the greeting and before any context or ask.
+
+### 3. The "Group Name" Safety Filter
+**Instruction:** If the Group field is 'Other' or blank, do not reference a network. Instead, use: "I came across your background while researching [Industry]."
+
+**When Group is valid (PEA, McK, GU, BP, MBA, MVNX, fam):**
+- Reference the network: "through the {{Group Name}} network" or "via {{Group Name}}"
+
+**When Group is 'Other' or blank:**
+- Use: "I came across your background while researching {{Industry}}."
+
+### 4. The "Call-to-Action" (CTA) Standard
+**Instruction:** 
+- **Email:** Use: "Would you have 15 minutes for a brief 'vibe check' on [Topic]?" OR "You free for a brief call next week?"
+- **Text:** Use: "Let me know if you're free for a quick call in the coming days, looking forward to it!" OR "Would you be open to a 10-minute call in the coming weeks?"
+
+**Never mix email and text CTAs.**
+
+---
+
 ## TEMPLATE TYPE SELECTION
 
-### Formal
+### Cold Intro (Formal)
 - Use when: **Type = "2026 new"** AND **no last contact date** (assume you've never met)
 
-### Informal/Casual
+### Reconnect (Casual)
 - Use when: **Type = "existing"** OR **has last contact date** (assume they know who you are)
 
 ---
 
 ## EMAIL TEMPLATES
 
-### Email - Formal
+### Email - Cold Intro
 
-**Subject:** Direct subject line (e.g., "Quick question" or "Hoping to connect")
+**Subject:** {{Group Name}} / {{Topic}} (e.g., "Exeter / Starting Businesses" or "McKinsey / AI Consulting")
 
 **Body:**
 ```
-Hi {{First Name}},
+Hi {{First Name}} – 
 
-I came across your background through the {{Exeter / McKinsey / alumni / industry}} network and wanted to reach out given the shared connection. I'm currently {{one-line identity}}, and your experience {{specific observation: e.g., building X, transitioning into AI, starting Y}} stood out.
+Saw your path from {{Previous Company/Role}} to {{Current Company/Role}}. I'm a {{Group Name}} alum {{one-line identity: e.g., heading to Stanford for my MBA this fall}} and I'm currently focused on {{current focus: e.g., building AI automation consulting}}.
 
-As I think through my next chapter, I'd value your perspective on {{topic: starting a business, developing AI capability, making the most of business school, operator paths, etc.}}.
-
-Would you happen to have time to connect sometime in the coming weeks? I'm happy to work around your schedule.
+Would love to get your "vibe check" on {{topic: e.g., making that jump into entrepreneurship}}. Do you have 15 mins this month?
 
 Best,
 Taylor
 ```
 
-### Email - Casual
+**Alternative (when Group is 'Other' or blank):**
+```
+Hi {{First Name}} – 
 
-**Subject:** Direct subject line (e.g., "Catching up" or "Quick question")
+I came across your background while researching {{Industry}} and saw your path from {{Previous Company/Role}} to {{Current Company/Role}}. I'm currently {{one-line identity}} and I'm focused on {{current focus}}.
+
+Would love to get your "vibe check" on {{topic}}. Do you have 15 mins this month?
+
+Best,
+Taylor
+```
+
+### Email - Reconnect
+
+**Subject:** Catching up / {{Update Topic}} (e.g., "Catching up / Stanford update")
 
 **Body:**
 ```
-Hi {{First Name}},
+Hi {{First Name}} – 
 
-It's been a while since we last connected, and I wanted to reach out to see how you've been doing. Would love to hear what you've been up to and reconnect.
+It's been a while! Wanted to share a quick update that {{personal update: e.g., I'm heading to Stanford for business school later this year}}.
 
-If you're open to it, it would be great to find time to catch up sometime in the coming weeks, and I'd especially enjoy getting your perspective on {{optional topic}}.
-
-Hope all is well on your end and look forward to reconnecting.
+Before I head out, I'd love to hear how things are at {{Company}} and get your pulse on the {{Industry}} space. You free for a brief call next week?
 
 Best,
 Taylor
@@ -74,16 +117,16 @@ Taylor
 
 ## TEXT TEMPLATES
 
-### Text - Formal
+### Text - Cold Intro
 
 ```
-Hi {{First Name}}, this is Taylor Walshe. We haven't met, but I came across your background through {{shared connection}} and wanted to reach out. I'd love to get your perspective on {{topic}} and hear about your experience with {{company / path / expertise}}. Any chance you'd be open to a quick call in the coming weeks? Happy to work around your schedule.
+Hi {{First Name}}, this is Taylor Walshe. We haven't met, but I've been following your work in {{Industry}}. I'd love to get your perspective on {{topic: e.g., developing AI capability}}. Would you be open to a 10-minute call in the coming weeks?
 ```
 
-### Text - Casual
+### Text - Reconnect
 
 ```
-{{First Name}}! Hope {{location / role / recent life update}} is treating you well. It's been too long. Would love to catch up and hear what you've been up to. Any chance you're free for a quick call sometime in the next few days?
+{{First Name}}! Hope {{Location}} is treating you well. Been too long—would love to catch up and hear what you've been up to. Let me know if you're free for a quick call in the coming days, looking forward to it!
 ```
 
 ---
@@ -92,19 +135,21 @@ Hi {{First Name}}, this is Taylor Walshe. We haven't met, but I came across your
 
 **Every outreach message MUST feel individually written.**
 
-Use available profile data to customize the message while preserving the default structure.
+Use available profile data to customize the message while preserving the default structure and following all composition rules.
 
 ### Primary Fields to Pull From
 
 - **Company**
 - **Current role**
 - **Prior roles**
-- **Shared groups** (McKinsey, Exeter, HBS, alumni networks, etc.)
+- **Group** (PEA, McK, GU, BP, MBA, MVNX, fam, other) - **Critical for network reference**
 - **Location / geography**
 - **Notes from CRM**
 - **Prior interactions**
 - **Industry**
 - **Career transitions**
+- **Type** (existing vs 2026_new) - **Critical for update-first logic**
+- **Status** - **Critical for update-first logic**
 - **Operator vs investor vs founder path**
 - **Any unique or distinguishing detail**
 
@@ -112,12 +157,22 @@ Use available profile data to customize the message while preserving the default
 
 If multiple data points exist, prioritize relevance in this order:
 
-1. **Shared identity** (McKinsey, school, mutual contact)
-2. **Current role or company**
-3. **Career move or transition**
-4. **Industry overlap**
-5. **Geography**
-6. **Notes / prior conversations**
+1. **Group** (for network reference - check safety filter first)
+2. **Type/Status** (for update-first logic if existing)
+3. **Current role or company**
+4. **Career move or transition**
+5. **Industry overlap**
+6. **Geography**
+7. **Notes / prior conversations**
+
+### Personalization Checklist
+
+Before sending, verify:
+- [ ] **Once-Only Rule:** No duplicate key nouns/phrases
+- [ ] **Update-First:** If existing contact, personal update included
+- [ ] **Group Safety:** Network reference only if Group is valid (not 'Other' or blank)
+- [ ] **CTA Match:** Email CTA for email, Text CTA for text
+- [ ] **Subject Line:** Includes Group name and topic (for cold intro emails)
 
 ---
 
@@ -129,25 +184,72 @@ If multiple data points exist, prioritize relevance in this order:
 - `{{Current role}}` - Current job title/role
 - `{{Location}}` - Geographic location
 - `{{Industry}}` - Industry sector
+- `{{Previous Company/Role}}` - Prior company or role (for career path references)
 
 ### Connection Variables
-- `{{Exeter / McKinsey / alumni / industry}}` - Shared connection point
-- `{{shared connection}}` - How you found them or mutual connection
-- `{{one-line identity}}` - Brief description of who you are
+- `{{Group Name}}` - Shared group (PEA, McK, GU, BP, MBA, MVNX, fam) - **Only use if Group is not 'Other' or blank**
+- `{{one-line identity}}` - Brief description of who you are (e.g., "heading to Stanford for my MBA this fall")
+- `{{current focus}}` - What you're currently working on (e.g., "building AI automation consulting")
 
 ### Personalization Variables
-- `{{specific observation}}` - Something specific about their background/experience
-- `{{topic}}` - The topic you want to discuss
-- `{{company / path / expertise}}` - Their company, career path, or area of expertise
-- `{{location / role / recent life update}}` - Contextual reference for casual outreach
-- `{{optional topic}}` - Optional topic for casual reconnection
+- `{{topic}}` - The topic you want to discuss (e.g., "making that jump into entrepreneurship", "developing AI capability")
+- `{{personal update}}` - Personal update for existing contacts (e.g., "I'm heading to Stanford for business school later this year")
+
+### Dynamic Variables (Based on Contact Data)
+- `{{Group Name}}` - Maps to: PEA → "Exeter", McK → "McKinsey", GU → "Georgetown", BP → "Berkshire Partners", MBA → "business school", MVNX → "MVNX", fam → "family"
+- `{{Network Reference}}` - Either "through the {{Group Name}} network" OR "I came across your background while researching {{Industry}}" (based on Group safety filter)
+
+---
+
+## MASTER TEMPLATE EXAMPLES
+
+### Scenario #1: Cold Intro (Email)
+**Subject:** Exeter / Starting Businesses
+
+**Body:**
+```
+Hi {{First Name}} – 
+
+Saw your path from Cornerstone to founding your own ventures. I'm an Exeter alum heading to Stanford for my MBA this fall and I'm currently focused on building AI automation consulting.
+
+Would love to get your "vibe check" on making that jump into entrepreneurship. Do you have 15 mins this month?
+
+Best,
+Taylor
+```
+
+### Scenario #2: Reconnect (Email)
+**Subject:** Catching up / Stanford update
+
+**Body:**
+```
+Hi {{First Name}} – 
+
+It's been a while! Wanted to share a quick update that I'm heading to Stanford for business school later this year.
+
+Before I head out, I'd love to hear how things are at {{Company}} and get your pulse on the {{Industry}} space. You free for a brief call next week?
+
+Best,
+Taylor
+```
+
+### Scenario #3: Reconnect (Text)
+```
+{{First Name}}! Hope LA is treating you well. Been too long—would love to catch up and hear what you've been up to. Let me know if you're free for a quick call in the coming days, looking forward to it!
+```
+
+### Scenario #4: Cold Intro (Text)
+```
+Hi {{First Name}}, this is Taylor Walshe. We haven't met, but I've been following your work in {{Industry}}. I'd love to get your perspective on developing AI capability. Would you be open to a 10-minute call in the coming weeks?
+```
 
 ---
 
 ## USAGE NOTES
 
 - **Always personalize** - Never send a template without customization
-- **Match tone to relationship** - Formal for new contacts, casual for existing
+- **Match tone to relationship** - Cold intro for new contacts, reconnect for existing
 - **Keep it brief** - Respect their time
 - **Make the ask clear** - What do you want? (call, chat, perspective)
-- **Work around their schedule** - Show flexibility
+- **Follow all composition rules** - Once-Only, Update-First, Group Safety, CTA Standard
+- **Verify before sending** - Use the personalization checklist

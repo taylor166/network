@@ -10,8 +10,13 @@
 
 ### 2. Prepare Outreach
 - Review contact information and context
-- Select appropriate template
+- Select appropriate template (Cold Intro vs Reconnect, Email vs Text)
 - Personalize template with contact-specific details
+- **Apply Composition Rules:**
+  - **Once-Only Rule:** Verify no duplicate key nouns/phrases
+  - **Update-First Logic:** If existing contact, include personal update
+  - **Group Name Safety:** Only reference network if Group is valid
+  - **CTA Standard:** Use correct CTA format for email vs text
 - **Status:** `prepared` or `ready_to_contact`
 
 ### 3. Send Outreach
