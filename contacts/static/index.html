@@ -52,23 +52,106 @@
             gap: 0;
         }
 
+        /* Left Command Center Sidebar - Arc-style auto-hide */
+        .command-center {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 60px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            z-index: 1000;
+            transition: width 0.2s ease;
+            overflow: hidden;
+        }
+
+        .command-center:hover,
+        .command-center.expanded {
+            width: 200px;
+        }
+
+        .command-center.expanded {
+            width: 200px;
+        }
+
+        .command-center-content {
+            padding: 20px 12px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .command-tab {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .command-tab:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .command-tab.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .command-tab-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .command-tab-label {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .command-center:hover .command-tab-label,
+        .command-center.expanded .command-tab-label {
+            opacity: 1;
+        }
+
         .main-content {
             flex: 1;
             padding: 32px 40px;
-            max-width: calc(100% - 280px);
+            margin-left: 60px;
             overflow-x: auto;
+            transition: margin-left 0.2s ease;
         }
 
+        .command-center:hover ~ .main-content,
+        .command-center.expanded ~ .main-content {
+            margin-left: 200px;
+        }
+
+        /* Tab Content Areas */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Remove old sidebar */
         .sidebar {
-            width: 280px;
-            background: var(--bg-primary);
-            border-left: 1px solid var(--border-color);
-            padding: 28px 20px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
+            display: none;
         }
 
         header {
@@ -647,21 +730,13 @@
             color: var(--text-secondary);
         }
 
-        @media (max-width: 1024px) {
-            .app-layout {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-left: none;
-                border-top: 1px solid var(--border-color);
+            @media (max-width: 1024px) {
+            .command-center {
+                width: 200px;
             }
 
             .main-content {
-                max-width: 100%;
+                margin-left: 200px;
             }
         }
 
@@ -669,23 +744,282 @@
         input, select, textarea, button, label, th, td, h1, h2, h3, p, span, div {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
+        /* Mailbox Tab Styles */
+        .mailbox-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+
+        .mailbox-panel {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .mailbox-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .mailbox-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .mailbox-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .mailbox-item:hover {
+            background: var(--bg-tertiary);
+        }
+
+        .mailbox-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .mailbox-item-from {
+            font-weight: 500;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .mailbox-item-date {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .mailbox-item-subject {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .mailbox-item-preview {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* History Thread Styles */
+        .history-thread {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 12px;
+            overflow: hidden;
+        }
+
+        .thread-header {
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.15s ease;
+        }
+
+        .thread-header:hover {
+            background: var(--bg-secondary);
+        }
+
+        .thread-icon {
+            font-size: 10px;
+            color: var(--text-secondary);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .thread-header.expanded .thread-icon {
+            transform: rotate(90deg);
+        }
+
+        .thread-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .thread-meta {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-left: auto;
+        }
+
+        .thread-subject {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .thread-content {
+            padding: 0 12px 12px 12px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 0;
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                max-height: 0;
+            }
+            to {
+                opacity: 1;
+                max-height: 2000px;
+            }
+        }
+
+        .thread-message {
+            background: var(--bg-secondary);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+        }
+
+        .unknown-contact {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            font-style: italic;
+            margin-left: 8px;
+        }
+
+        /* Reply Modal Styles */
+        .original-email-preview {
+            margin-bottom: 16px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .original-email-toggle {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+            padding: 4px 0;
+            text-decoration: underline;
+        }
+
+        .original-email-toggle:hover {
+            color: var(--text-primary);
+        }
+
+        .original-email-content {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Stats Tab Styles */
+        .stats-container {
+            display: grid;
+            gap: 24px;
+        }
+
+        .stats-section {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stats-section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--bg-tertiary);
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-card-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
     </style>
 </head>
 <body>
+    <!-- Left Command Center -->
+    <div class="command-center" id="commandCenter">
+        <div class="command-center-content">
+            <div class="command-tab active" onclick="switchMainTab('rolodex')" data-tab="rolodex">
+                <div class="command-tab-icon">📇</div>
+                <div class="command-tab-label">Rolodex</div>
+            </div>
+            <div class="command-tab" onclick="switchMainTab('mailbox')" data-tab="mailbox">
+                <div class="command-tab-icon">📬</div>
+                <div class="command-tab-label">Mailbox</div>
+            </div>
+            <div class="command-tab" onclick="switchMainTab('stats')" data-tab="stats">
+                <div class="command-tab-icon">📊</div>
+                <div class="command-tab-label">Stats</div>
+            </div>
+        </div>
+    </div>
+
     <div class="app-layout">
         <div class="main-content">
-            <header>
-                <h1>Contact Management</h1>
-                <p>Manage your networking contacts with Notion integration</p>
-                <div class="header-actions">
-                    <button class="btn btn-primary" onclick="openAddModal()">+ Add Contact</button>
-                    <button class="btn btn-secondary" onclick="loadContacts(true)">Refresh</button>
-                </div>
-            </header>
+            <!-- Rolodex Tab -->
+            <div id="rolodexTab" class="tab-content active">
+                <header>
+                    <h1>Contact Management</h1>
+                    <p>Manage your networking contacts with Notion integration</p>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openAddModal()">+ Add Contact</button>
+                        <button class="btn btn-secondary" onclick="loadContacts(true)">Refresh</button>
+                    </div>
+                </header>
 
-            <div id="message"></div>
+                <div id="message"></div>
 
-            <div class="filters">
+                <div class="filters">
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>Search</label>
@@ -699,46 +1033,70 @@
                     <div class="loading">Loading contacts...</div>
                 </div>
             </div>
-        </div>
+            </div>
 
-        <div class="sidebar">
-            <div class="sidebar-section">
-                <div class="stat-section">
-                    <div class="stat-section-title">2026 Stats</div>
-                    <div class="sidebar-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Outbounds</div>
-                            <div class="stat-value" id="stat-2026-outbounds">-</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Calls</div>
-                            <div class="stat-value" id="stat-2026-calls">-</div>
+            <!-- Mailbox Tab -->
+            <div id="mailboxTab" class="tab-content">
+                <header>
+                    <h1>Mailbox</h1>
+                    <p>View inbox and outbox messages</p>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="syncAllEmails()">Sync Email</button>
+                    </div>
+                </header>
+
+                <div id="message-mailbox"></div>
+
+                <div class="mailbox-container">
+                    <div class="mailbox-panel">
+                        <div class="mailbox-header">Inbox (CRM Responses)</div>
+                        <div class="mailbox-list" id="inboxList">
+                            <div class="loading">Loading inbox...</div>
                         </div>
                     </div>
-                </div>
-                <div class="stat-section">
-                    <div class="stat-section-title" id="this-month-title">This Month Stats</div>
-                    <div class="sidebar-stats">
-                        <div class="stat-item">
-                            <div class="stat-label">Outbounds</div>
-                            <div class="stat-value" id="stat-month-outbounds">-</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">Calls</div>
-                            <div class="stat-value" id="stat-month-calls">-</div>
+                    <div class="mailbox-panel">
+                        <div class="mailbox-header">Outbox (CRM Sent)</div>
+                        <div class="mailbox-list" id="outboxList">
+                            <div class="loading">Loading outbox...</div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="sidebar-section">
-                <h3>Quick Actions</h3>
-                <div class="quick-actions">
-                    <button class="quick-action-btn" onclick="openAddModal()">+ Add New Contact</button>
-                    <button class="quick-action-btn" onclick="loadContacts(true)">🔄 Refresh Data</button>
-                    <button class="quick-action-btn" onclick="filterByStatus('need_to_contact')">📋 View Need to Contact</button>
-                    <button class="quick-action-btn" onclick="filterByStatus('contacted')">✅ View Contacted</button>
-                    <button class="quick-action-btn" onclick="clearFilters()">🔍 Clear All Filters</button>
+            <!-- Stats Tab -->
+            <div id="statsTab" class="tab-content">
+                <header>
+                    <h1>Statistics</h1>
+                    <p>View your networking statistics</p>
+                </header>
+
+                <div class="stats-container">
+                    <div class="stats-section">
+                        <div class="stats-section-title" id="stats-2026-title">2026 Stats</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-card-label">Outbounds</div>
+                                <div class="stat-card-value" id="stat-2026-outbounds">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">Calls</div>
+                                <div class="stat-card-value" id="stat-2026-calls">-</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-section">
+                        <div class="stats-section-title" id="this-month-title">This Month Stats</div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-card-label">Outbounds</div>
+                                <div class="stat-card-value" id="stat-month-outbounds">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-card-label">Calls</div>
+                                <div class="stat-card-value" id="stat-month-calls">-</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -799,14 +1157,14 @@
                         <label>Group</label>
                         <select id="form_group">
                             <option value="">-- Select --</option>
-                            <option value="fam">Family</option>
+                            <option value="Fam">Family</option>
                             <option value="McK">McKinsey</option>
                             <option value="PEA">Exeter</option>
                             <option value="GU">Georgetown</option>
                             <option value="BP">Berkshire</option>
                             <option value="MBA">MBA</option>
                             <option value="MVNX">Mavnox</option>
-                            <option value="other">Other</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -821,7 +1179,7 @@
                         <input type="text" id="company">
                     </div>
                     <div class="form-group">
-                        <label>Title</label>
+                        <label>Role</label>
                         <input type="text" id="title">
                     </div>
                 </div>
@@ -830,10 +1188,6 @@
                     <div class="form-group">
                         <label>Location</label>
                         <input type="text" id="location">
-                    </div>
-                    <div class="form-group">
-                        <label>Industry</label>
-                        <input type="text" id="industry">
                     </div>
                 </div>
 
@@ -861,10 +1215,8 @@
             <div id="viewDetailsContent" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Content will be populated by JavaScript -->
             </div>
-            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <div id="viewDetailsActions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
                 <button type="button" class="btn btn-secondary" onclick="closeViewDetailsModal()">Close</button>
-                <button type="button" class="btn btn-primary" onclick="editFromViewDetails()">Edit Contact</button>
-                <button type="button" class="btn btn-secondary" onclick="sendFromViewDetails()">Send Message</button>
             </div>
         </div>
     </div>
@@ -882,6 +1234,115 @@
                 <button type="button" class="btn btn-secondary" onclick="closeSendModal()">Close</button>
                 <button type="button" class="btn btn-primary" onclick="copyDraft()">Copy to Clipboard</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Send Email Modal -->
+    <div id="sendEmailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Email</h2>
+                <button class="close-btn" onclick="document.getElementById('sendEmailModal').classList.remove('active')">&times;</button>
+            </div>
+            <form onsubmit="sendEmail(event)">
+                <input type="hidden" id="sendEmailContactId">
+                <div class="form-group">
+                    <label>To</label>
+                    <div id="sendEmailTo" style="color: var(--text-primary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>From Account</label>
+                    <select id="sendEmailFromAccount" required style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                        <option value="">Loading accounts...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="sendEmailSubject" required style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label>Body</label>
+                    <textarea id="sendEmailBody" required rows="10" style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('sendEmailModal').classList.remove('active')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Email</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reply Email Modal -->
+    <div id="replyEmailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="replyEmailTitle">Reply to Contact</h2>
+                <button class="close-btn" onclick="closeReplyModal()">&times;</button>
+            </div>
+            <div class="original-email-preview">
+                <button type="button" class="original-email-toggle" onclick="toggleOriginalEmail()" id="toggleOriginalBtn">Show Original Email</button>
+                <div class="original-email-content" id="originalEmailContent" style="display: none;">
+                    <div style="margin-bottom: 8px;">
+                        <strong>From:</strong> <span id="originalEmailFrom"></span><br>
+                        <strong>Date:</strong> <span id="originalEmailDate"></span><br>
+                        <strong>Subject:</strong> <span id="originalEmailSubject"></span>
+                    </div>
+                    <div id="originalEmailBody" style="border-top: 1px solid var(--border-color); padding-top: 8px; margin-top: 8px;"></div>
+                </div>
+            </div>
+            <form onsubmit="sendReplyEmail(event)">
+                <input type="hidden" id="replyEmailContactId">
+                <input type="hidden" id="replyMessageId">
+                <div class="form-group">
+                    <label>To</label>
+                    <div id="replyEmailTo" style="color: var(--text-primary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>From Account</label>
+                    <select id="replyEmailFromAccount" required style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                        <option value="">Loading accounts...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="replyEmailSubject" required style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary);">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="replyEmailBody" required rows="10" style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-family: inherit; resize: vertical;"></textarea>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="regenerateReply()">Regenerate Reply</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeReplyModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Reply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Send SMS Modal -->
+    <div id="sendSMSModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Text Message</h2>
+                <button class="close-btn" onclick="document.getElementById('sendSMSModal').classList.remove('active')">&times;</button>
+            </div>
+            <form onsubmit="sendSMS(event)">
+                <input type="hidden" id="sendSMSContactId">
+                <div class="form-group">
+                    <label>To</label>
+                    <div id="sendSMSTo" style="color: var(--text-primary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;"></div>
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="sendSMSBody" required rows="6" style="width: 100%; padding: 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 4px; color: var(--text-primary); font-family: inherit; resize: vertical;"></textarea>
+                    <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 4px;">SMS messages are limited to 1600 characters</div>
+                </div>
+                <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('sendSMSModal').classList.remove('active')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Text</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1294,19 +1755,22 @@
                 // Group badge
                 let groupBadge = '-';
                 if (contact.group) {
-                    // Normalize group name for class matching
-                    const groupLower = contact.group.toLowerCase();
+                    // Normalize and clean the group value for display (remove any parentheses)
+                    const cleanedGroup = normalizeGroupValue(contact.group);
+                    // Normalize group name for class matching (handle both Notion values and display names)
+                    const groupLower = cleanedGroup.toLowerCase();
                     let groupClass = 'group-other';
-                    if (groupLower === 'fam') groupClass = 'group-fam';
+                    if (groupLower === 'fam' || groupLower === 'family') groupClass = 'group-fam';
                     else if (groupLower === 'mck' || groupLower === 'mckinsey') groupClass = 'group-McK';
-                    else if (groupLower === 'pea' || groupLower === 'phillips exeter academy') groupClass = 'group-PEA';
+                    else if (groupLower === 'pea' || groupLower === 'phillips exeter academy' || groupLower === 'exeter') groupClass = 'group-PEA';
                     else if (groupLower === 'gu' || groupLower === 'georgetown' || groupLower === 'georgetown university') groupClass = 'group-GU';
-                    else if (groupLower === 'bp' || groupLower === 'berkshire partners') groupClass = 'group-BP';
+                    else if (groupLower === 'bp' || groupLower === 'berkshire partners' || groupLower === 'berkshire') groupClass = 'group-BP';
                     else if (groupLower === 'mba') groupClass = 'group-MBA';
-                    else if (groupLower === 'mvnx') groupClass = 'group-MVNX';
+                    else if (groupLower === 'mvnx' || groupLower === 'mavnox') groupClass = 'group-MVNX';
                     else if (groupLower === 'other') groupClass = 'group-other';
                     
-                    groupBadge = `<span class="group-badge ${groupClass}">${contact.group}</span>`;
+                    // Display the cleaned group value (no parentheses)
+                    groupBadge = `<span class="group-badge ${groupClass}">${cleanedGroup}</span>`;
                 }
                 
                 html += `
@@ -1319,8 +1783,8 @@
                         <td>${contact.last_contact_date || '-'}</td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn btn-primary btn-small" onclick="editContact('${contact.id}')">Edit</button>
-                                <button class="btn btn-secondary btn-small" onclick="openSendModal('${contact.id}')">Send</button>
+                                <button class="btn btn-secondary btn-small" onclick="openDraftModal('${contact.id}')">Draft</button>
+                                <button class="btn btn-primary btn-small" onclick="openSendEmailForm('${contact.id}')">Send</button>
                             </div>
                         </td>
                     </tr>
@@ -1415,25 +1879,39 @@
         }
 
         function normalizeGroupValue(groupValue) {
-            // Normalize group value to match select options (case-insensitive)
+            // Normalize group value to match Notion values exactly (case-sensitive for Notion)
             if (!groupValue) return '';
-            const groupLower = groupValue.toLowerCase();
+            // Strip all trailing parentheses, brackets, and whitespace - be aggressive about cleaning
+            let cleaned = groupValue.toString().trim()
+                .replace(/[\)\]]+$/g, '')  // Remove trailing ) or ]
+                .replace(/\([^)]*\)$/g, '')  // Remove trailing parenthetical content like (text)
+                .trim();
+            const groupLower = cleaned.toLowerCase();
             const groupMap = {
-                'fam': 'fam',
-                'family': 'fam',
+                'fam': 'Fam',
+                'family': 'Fam',
                 'mck': 'McK',
                 'mckinsey': 'McK',
+                'mckinsey)': 'McK',  // Handle trailing parenthesis
                 'pea': 'PEA',
                 'phillips exeter academy': 'PEA',
+                'exeter': 'PEA',
                 'gu': 'GU',
                 'georgetown': 'GU',
                 'georgetown university': 'GU',
                 'bp': 'BP',
                 'berkshire partners': 'BP',
+                'berkshire': 'BP',
                 'mba': 'MBA',
                 'mvnx': 'MVNX',
-                'other': 'other'
+                'mavnox': 'MVNX',
+                'other': 'Other'
             };
+            // Check if it's already a valid Notion value (exact match, case-sensitive)
+            const validNotionValues = ['Fam', 'McK', 'PEA', 'GU', 'BP', 'MBA', 'MVNX', 'Other'];
+            if (validNotionValues.includes(cleaned)) {
+                return cleaned;
+            }
             // Try exact match first
             if (groupMap[groupLower]) {
                 return groupMap[groupLower];
@@ -1444,8 +1922,8 @@
                     return value;
                 }
             }
-            // If no match, return original (might be a new group value)
-            return groupValue;
+            // If no match, return cleaned original (might be a new group value)
+            return cleaned;
         }
 
         async function editContact(id) {
@@ -1469,7 +1947,6 @@
                 document.getElementById('form_group').value = normalizeGroupValue(contact.group) || '';
                 document.getElementById('title').value = contact.title || '';
                 document.getElementById('company').value = contact.company || '';
-                document.getElementById('industry').value = contact.industry || '';
                 document.getElementById('location').value = contact.location || '';
                 document.getElementById('linkedin_url').value = contact.linkedin_url || '';
                 document.getElementById('notes').value = contact.notes || '';
@@ -1502,7 +1979,6 @@
                 group: document.getElementById('form_group').value || null,
                 title: document.getElementById('title').value || null,
                 company: document.getElementById('company').value || null,
-                industry: document.getElementById('industry').value || null,
                 location: document.getElementById('location').value || null,
                 linkedin_url: document.getElementById('linkedin_url').value || null,
                 notes: document.getElementById('notes').value || null,
@@ -1557,6 +2033,7 @@
         }
 
         // Map group abbreviations to full names (use natural, shorter names)
+        // This maps Notion values to display names for personalization
         function getGroupFullName(group) {
             if (!group) return null;
             const groupMap = {
@@ -1565,8 +2042,11 @@
                 'GU': 'Georgetown',  // Not "Georgetown University"
                 'McK': 'McKinsey',
                 'MBA': 'HBS',
-                'MVNX': 'MVNX',
-                'fam': 'family'
+                'MVNX': 'Mavnox',
+                'Fam': 'Family',
+                'fam': 'Family',  // Handle lowercase for backward compatibility
+                'Other': 'Other',
+                'other': 'Other'  // Handle lowercase for backward compatibility
             };
             return groupMap[group] || group;
         }
@@ -1717,7 +2197,6 @@
                 company: contact.company || '',
                 title: contact.title || '',
                 location: contact.location || '',
-                industry: contact.industry || '',
                 notes: notes,
                 notesText: notesText,
                 // Time-based variation seed (0 = first time, 1+ = variations)
@@ -1739,7 +2218,7 @@
                     personalization.specificObservation = `Your experience building ${contact.company || 'companies'} stands out.`;
                 }
             } else if (notesText.includes('transition') || notesText.includes('moved')) {
-                personalization.specificObservation = `Noticed your transition into ${contact.industry || 'a new role'}—would value your perspective on that path.`;
+                personalization.specificObservation = `Noticed your transition into a new role—would value your perspective on that path.`;
             } else if (contact.company) {
                 personalization.specificObservation = `Came across your background at ${contact.company} and thought you'd be great to talk to.`;
             } else {
@@ -1772,8 +2251,8 @@
                 personalization.topic = 'operator paths';
             } else if (notesText.includes('investor') || notesText.includes('vc')) {
                 personalization.topic = 'investing and venture capital';
-            } else if (contact.industry) {
-                personalization.topic = `opportunities in ${contact.industry}`;
+            } else if (contact.company) {
+                personalization.topic = `opportunities in ${contact.company}`;
             } else {
                 personalization.topic = 'my next chapter';
             }
@@ -1792,7 +2271,7 @@
             if (isValidGroup) {
                 subject = `${groupName} / ${personalization.topic || 'Starting Businesses'}`;
             } else {
-                subject = `${personalization.industry || 'Hoping to Connect'} / ${personalization.topic || 'Starting Businesses'}`;
+                subject = `${personalization.company || 'Hoping to Connect'} / ${personalization.topic || 'Starting Businesses'}`;
             }
             
             // Get previous company/role from notes or use company
@@ -1833,8 +2312,7 @@
                 body = `Hi ${personalization.firstName} – \n\nSaw your path from ${previousCompany} to ${currentCompany}. I'm a ${groupName} alum ${oneLineIdentity} and I'm currently focused on ${currentFocus}.\n\nWould love to get your "vibe check" on ${topic}. Do you have 15 mins this month?\n\nBest,\nTaylor`;
             } else {
                 // Without group reference (Group is 'Other' or blank) - more natural email flow
-                const industry = contact.industry || personalization.industry || 'the industry';
-                body = `Hi ${personalization.firstName} – \n\nI came across your background while researching ${industry} and saw your path from ${previousCompany} to ${currentCompany}. I'm currently ${oneLineIdentity} and I'm focused on ${currentFocus}.\n\nWould love to get your "vibe check" on ${topic}. Do you have 15 mins this month?\n\nBest,\nTaylor`;
+                body = `Hi ${personalization.firstName} – \n\nI came across your background and saw your path from ${previousCompany} to ${currentCompany}. I'm currently ${oneLineIdentity} and I'm focused on ${currentFocus}.\n\nWould love to get your "vibe check" on ${topic}. Do you have 15 mins this month?\n\nBest,\nTaylor`;
             }
 
             return { subject, body };
@@ -1848,12 +2326,11 @@
             // Build subject: Catching up / Update Topic
             const subject = "Catching up / Stanford update";
             
-            // Get company and industry with fallbacks
+            // Get company with fallbacks
             const company = contact.company || personalization.company || 'your company';
-            const industry = contact.industry || personalization.industry || 'industry';
             
             // Build body with proper email structure (paragraphs, line breaks)
-            const body = `Hi ${personalization.firstName} – \n\nIt's been a while! Wanted to share a quick update that ${personalUpdate}.\n\nBefore I head out, I'd love to hear how things are at ${company} and get your pulse on the ${industry} space. You free for a brief call next week?\n\nBest,\nTaylor`;
+            const body = `Hi ${personalization.firstName} – \n\nIt's been a while! Wanted to share a quick update that ${personalUpdate}.\n\nBefore I head out, I'd love to hear how things are at ${company}. You free for a brief call next week?\n\nBest,\nTaylor`;
 
             return { subject, body };
         }
@@ -1861,10 +2338,10 @@
         // Generate formal text (Cold Intro) based on new template structure
         function generateFormalText(contact, personalization) {
             // Text CTA Standard: "Would you be open to a 10-minute call in the coming weeks?"
-            const industry = contact.industry || personalization.industry || 'your industry';
+            const company = contact.company || personalization.company || 'your work';
             const topic = personalization.topic || 'developing AI capability';
             
-            const text = `Hi ${personalization.firstName}, this is Taylor Walshe. We haven't met, but I've been following your work in ${industry}. I'd love to get your perspective on ${topic}. Would you be open to a 10-minute call in the coming weeks?`;
+            const text = `Hi ${personalization.firstName}, this is Taylor Walshe. We haven't met, but I've been following your work at ${company}. I'd love to get your perspective on ${topic}. Would you be open to a 10-minute call in the coming weeks?`;
 
             return text;
         }
@@ -1877,6 +2354,11 @@
             const text = `${personalization.firstName}! Hope ${location} is treating you well. Been too long—would love to catch up and hear what you've been up to. Let me know if you're free for a quick call in the coming days, looking forward to it!`;
 
             return text;
+        }
+
+        function openDraftModal(contactId) {
+            // This is the old openSendModal - just generates draft to copy
+            openSendModal(contactId);
         }
 
         function openSendModal(contactId) {
@@ -1981,9 +2463,13 @@
         }
 
         let currentViewContactId = null;
+        let currentViewTab = 'details';
+        let isEditingDetails = false;
+        let currentMainTab = 'rolodex';
 
         async function viewContactDetails(contactId) {
             currentViewContactId = contactId;
+            currentViewTab = 'details';
             try {
                 const response = await fetch(`${API_BASE}/contacts/${contactId}`);
                 if (!response.ok) {
@@ -1994,123 +2480,1019 @@
 
                 document.getElementById('viewDetailsTitle').textContent = contact.name || 'Contact Details';
                 
-                // Format status and type for display
-                const statusText = contact.status ? contact.status.replace(/_/g, ' ') : 'N/A';
-                const statusClass = contact.status ? `status-${contact.status}` : '';
-                const typeText = contact.type === '2026_new' ? '2026 New' : (contact.type || 'N/A');
-                const typeClass = contact.type === 'existing' ? 'type-existing' : 'type-2026_new';
-                
-                // Format group
-                let groupDisplay = contact.group || 'N/A';
-                
-                // Build the details HTML
-                let detailsHTML = `
-                    <div style="display: grid; gap: 16px;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Status</label>
-                                <div><span class="status-badge ${statusClass}">${statusText}</span></div>
-                            </div>
-                            <div class="form-group">
-                                <label>Type</label>
-                                <div><span class="type-badge ${typeClass}">${typeText}</span></div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Email</label>
-                                <div style="color: var(--text-primary);">${contact.email || '-'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <div style="color: var(--text-primary);">${contact.phone || '-'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Group</label>
-                                <div style="color: var(--text-primary);">${groupDisplay}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Relationship Type</label>
-                                <div style="color: var(--text-primary);">${contact.relationship_type || '-'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Role</label>
-                                <div style="color: var(--text-primary);">${contact.title || '-'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Company</label>
-                                <div style="color: var(--text-primary);">${contact.company || '-'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Industry</label>
-                                <div style="color: var(--text-primary);">${contact.industry || '-'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Location</label>
-                                <div style="color: var(--text-primary);">${contact.location || '-'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>LinkedIn URL</label>
-                            <div style="color: var(--text-primary);">
-                                ${contact.linkedin_url ? `<a href="${contact.linkedin_url}" target="_blank" style="color: #3b82f6; text-decoration: underline;">${contact.linkedin_url}</a>` : '-'}
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Last Contact Date</label>
-                                <div style="color: var(--text-primary);">${contact.last_contact_date || '-'}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Next Followup Date</label>
-                                <div style="color: var(--text-primary);">${contact.next_followup_date || '-'}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Days at Current Status</label>
-                                <div style="color: var(--text-primary);">${contact.days_at_current_status || 0}</div>
-                            </div>
-                            <div class="form-group">
-                                <label>Call Count</label>
-                                <div style="color: var(--text-primary);">${contact.call_count || 0}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <div style="color: var(--text-primary); white-space: pre-wrap; background: var(--bg-tertiary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); min-height: 60px;">
-                                ${contact.notes || '-'}
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Followup Context</label>
-                            <div style="color: var(--text-primary); white-space: pre-wrap; background: var(--bg-tertiary); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); min-height: 60px;">
-                                ${contact.followup_context || '-'}
-                            </div>
-                        </div>
+                // Build tabs - use data attributes for reliable matching
+                const tabsHTML = `
+                    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
+                        <button class="tab-btn" data-tab="details" onclick="switchContactTab('details')" style="padding: 8px 16px; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
+                            Details
+                        </button>
+                        <button class="tab-btn" data-tab="history" onclick="switchContactTab('history')" style="padding: 8px 16px; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
+                            History
+                        </button>
                     </div>
+                    <div id="contactTabContent"></div>
                 `;
                 
-                document.getElementById('viewDetailsContent').innerHTML = detailsHTML;
+                document.getElementById('viewDetailsContent').innerHTML = tabsHTML;
+                await renderContactTab(contact);
                 document.getElementById('viewDetailsModal').classList.add('active');
             } catch (error) {
                 showMessage(`Error loading contact: ${error.message}`, 'error');
                 console.error(error);
+            }
+        }
+
+        async function switchContactTab(tab) {
+            currentViewTab = tab;
+            
+            // Update tab buttons immediately for better UX
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const isActive = tabName === currentViewTab;
+                btn.style.borderBottomColor = isActive ? 'var(--primary-color)' : 'transparent';
+                btn.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
+                btn.style.fontWeight = isActive ? '600' : '400';
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${currentViewContactId}`);
+                if (!response.ok) {
+                    showMessage('Contact not found', 'error');
+                    return;
+                }
+                const contact = await response.json();
+                await renderContactTab(contact);
+            } catch (error) {
+                showMessage(`Error loading contact: ${error.message}`, 'error');
+                console.error(error);
+            }
+        }
+
+        async function renderContactTab(contact) {
+            const tabContent = document.getElementById('contactTabContent');
+            
+            if (currentViewTab === 'details') {
+                // Build editable form (like Edit modal)
+                const statusOptions = ['wait', 'queued', 'need_to_contact', 'contacted', 'circle_back', 'scheduled', 'done', 'ghosted'];
+                const typeOptions = ['', 'existing', '2026_new'];
+                const groupOptions = ['', 'Fam', 'McK', 'PEA', 'GU', 'BP', 'MBA', 'MVNX', 'Other'];
+                
+                // Escape HTML to prevent XSS and ensure values display correctly
+                const escapeHtml = (text) => {
+                    if (text == null || text === undefined) return '';
+                    return String(text)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                };
+                
+                let detailsHTML = `
+                    <form id="editContactFormInModal" onsubmit="saveContactFromDetails(event)">
+                        <input type="hidden" id="editContactIdInModal" value="${escapeHtml(contact.id)}">
+                        
+                        <div class="form-row">
+                            <div class="form-group required">
+                                <label>Name</label>
+                                <input type="text" id="editNameInModal" value="${escapeHtml(contact.name || '')}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" id="editPhoneInModal" value="${escapeHtml(contact.phone || '')}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" id="editEmailInModal" value="${escapeHtml(contact.email || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <select id="editTypeInModal">
+                                    ${typeOptions.map(opt => {
+                                        // Normalize type for comparison: handle both "existing"/"2026_new" and "Existing"/"2026 New"
+                                        const contactType = (contact.type || '').toLowerCase().trim();
+                                        const optLower = (opt || '').toLowerCase().trim();
+                                        const isSelected = contactType === optLower || 
+                                                          (contactType === 'existing' && optLower === 'existing') ||
+                                                          (contactType === '2026_new' && optLower === '2026_new') ||
+                                                          (contactType === '2026 new' && optLower === '2026_new');
+                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${opt === '2026_new' ? '2026 New' : (opt === 'existing' ? 'Existing' : (opt || '-- Select --'))}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="editStatusInModal">
+                                    ${statusOptions.map(opt => {
+                                        // Normalize status for comparison (handle both formats)
+                                        const contactStatus = (contact.status || '').toLowerCase().replace(/\s+/g, '_').trim();
+                                        const optLower = opt.toLowerCase().trim();
+                                        const isSelected = contactStatus === optLower;
+                                        // Display with proper capitalization
+                                        const displayText = opt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayText}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>LinkedIn URL</label>
+                                <input type="url" id="editLinkedInInModal" value="${escapeHtml(contact.linkedin_url || '')}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Group</label>
+                                <select id="editGroupInModal">
+                                    ${groupOptions.map(opt => {
+                                        // Normalize the contact's group value to remove any parentheses or formatting issues
+                                        const normalizedGroup = normalizeGroupValue(contact.group || '');
+                                        const isSelected = normalizedGroup === opt;
+                                        // Display clean names without any parentheses
+                                        const displayName = opt === 'Fam' ? 'Family' : 
+                                                          (opt === 'McK' ? 'McKinsey' : 
+                                                          (opt === 'PEA' ? 'Exeter' : 
+                                                          (opt === 'GU' ? 'Georgetown' : 
+                                                          (opt === 'BP' ? 'Berkshire' : 
+                                                          (opt === 'MBA' ? 'MBA' : 
+                                                          (opt === 'MVNX' ? 'Mavnox' : 
+                                                          (opt === 'Other' ? 'Other' : '-- Select --')))))));
+                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayName}</option>`;
+                                    }).join('')}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Role</label>
+                                <input type="text" id="editTitleInModal" value="${escapeHtml(contact.title || '')}">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Company</label>
+                                <input type="text" id="editCompanyInModal" value="${escapeHtml(contact.company || '')}">
+                            </div>
+                            <div class="form-group">
+                                <label>Location</label>
+                                <input type="text" id="editLocationInModal" value="${escapeHtml(contact.location || '')}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="editNotesInModal" rows="3">${escapeHtml(contact.notes || '')}</textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                            <button type="button" class="btn btn-secondary" onclick="cancelEditDetails()">Cancel</button>
+                            <button type="button" class="btn btn-danger" onclick="deleteContactFromDetails()">Delete</button>
+                            <button type="submit" class="btn btn-primary">Save Contact</button>
+                        </div>
+                    </form>
+                `;
+                tabContent.innerHTML = detailsHTML;
+                isEditingDetails = true;
+            } else if (currentViewTab === 'history') {
+                // Load conversation history (read-only list)
+                await loadContactHistory(contact);
+            }
+            
+            // Update tab buttons - use data attributes for reliable matching
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                const tabName = btn.getAttribute('data-tab');
+                const isActive = tabName === currentViewTab;
+                btn.style.borderBottomColor = isActive ? 'var(--primary-color)' : 'transparent';
+                btn.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
+                btn.style.fontWeight = isActive ? '600' : '400';
+            });
+        }
+
+        async function loadContactHistory(contact) {
+            const tabContent = document.getElementById('contactTabContent');
+            tabContent.innerHTML = '<div class="loading">Loading conversation history...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${contact.id}/messages`);
+                if (!response.ok) {
+                    throw new Error('Failed to load messages');
+                }
+                const messages = await response.json();
+                
+                // Build history HTML with collapsible threads
+                let historyHTML = `
+                    <div style="display: grid; gap: 16px;">
+                        <div style="max-height: 400px; overflow-y: auto;">
+                `;
+                
+                if (messages.length === 0) {
+                    historyHTML += `
+                        <div style="text-align: center; padding: 32px; color: var(--text-secondary);">
+                            <p>No conversations in system.</p>
+                        </div>
+                    `;
+                } else {
+                    // Sort messages by date (oldest first for threading)
+                    messages.sort((a, b) => {
+                        const dateA = new Date(a.sent_at || a.received_at || a.created_at || 0);
+                        const dateB = new Date(b.sent_at || b.received_at || b.created_at || 0);
+                        return dateA - dateB;
+                    });
+                    
+                    // Group messages into threads by subject (for emails) or date proximity
+                    const threads = [];
+                    let currentThread = null;
+                    
+                    messages.forEach(msg => {
+                        const isEmail = msg.channel === 'email';
+                        const timestamp = msg.sent_at || msg.received_at || msg.created_at;
+                        const msgDate = timestamp ? new Date(timestamp) : new Date();
+                        
+                        // Group by subject if email, or by date if same day
+                        if (isEmail && msg.subject) {
+                            // Check if this belongs to existing thread with same subject
+                            if (currentThread && currentThread.subject === msg.subject) {
+                                currentThread.messages.push(msg);
+                            } else {
+                                // Start new thread
+                                currentThread = {
+                                    subject: msg.subject,
+                                    messages: [msg],
+                                    date: msgDate
+                                };
+                                threads.push(currentThread);
+                            }
+                        } else {
+                            // For SMS or emails without subject, group by date (same day)
+                            const msgDateStr = msgDate.toDateString();
+                            if (currentThread && currentThread.dateStr === msgDateStr && !currentThread.subject) {
+                                currentThread.messages.push(msg);
+                            } else {
+                                currentThread = {
+                                    subject: null,
+                                    messages: [msg],
+                                    date: msgDate,
+                                    dateStr: msgDateStr
+                                };
+                                threads.push(currentThread);
+                            }
+                        }
+                    });
+                    
+                    // Sort threads by most recent message (newest first)
+                    threads.sort((a, b) => {
+                        const lastMsgA = a.messages[a.messages.length - 1];
+                        const lastMsgB = b.messages[b.messages.length - 1];
+                        const dateA = new Date(lastMsgA.sent_at || lastMsgA.received_at || lastMsgA.created_at || 0);
+                        const dateB = new Date(lastMsgB.sent_at || lastMsgB.received_at || lastMsgB.created_at || 0);
+                        return dateB - dateA;
+                    });
+                    
+                    // Render threads
+                    threads.forEach((thread, threadIndex) => {
+                        const lastMsg = thread.messages[thread.messages.length - 1];
+                        const lastTimestamp = lastMsg.sent_at || lastMsg.received_at || lastMsg.created_at;
+                        const lastDate = lastTimestamp ? new Date(lastTimestamp) : new Date();
+                        const dateStr = lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                        const threadId = `thread-${threadIndex}`;
+                        
+                        // Determine thread title
+                        let threadTitle = '';
+                        if (thread.subject) {
+                            threadTitle = `${dateStr} Email Thread`;
+                        } else {
+                            threadTitle = `${dateStr} Conversation`;
+                        }
+                        
+                        historyHTML += `
+                            <div class="history-thread">
+                                <div class="thread-header" onclick="toggleThread('${threadId}')" id="header-${threadId}">
+                                    <span class="thread-icon">▶</span>
+                                    <div style="flex: 1;">
+                                        <div class="thread-title">${threadTitle}</div>
+                                        ${thread.subject ? `<div class="thread-subject">${thread.subject}</div>` : ''}
+                                    </div>
+                                    <div class="thread-meta">${thread.messages.length} message${thread.messages.length !== 1 ? 's' : ''} • Last: ${lastDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                                </div>
+                                <div class="thread-content" id="content-${threadId}" style="display: none;">
+                        `;
+                        
+                        // Render messages in thread
+                        thread.messages.forEach(msg => {
+                            const isOutbound = msg.direction === 'outbound';
+                            const isEmail = msg.channel === 'email';
+                            const fromAccount = msg.from_account || (isOutbound ? msg.from_address : null);
+                            const timestamp = msg.sent_at || msg.received_at || msg.created_at;
+                            const dateStr = timestamp ? new Date(timestamp).toLocaleString() : '';
+                            
+                            historyHTML += `
+                                <div class="thread-message">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                        <div>
+                                            <span style="font-weight: 600; color: var(--text-primary);">
+                                                ${isOutbound ? '→ Outbound' : '← Inbound'}
+                                            </span>
+                                            <span style="color: var(--text-secondary); margin-left: 8px;">
+                                                ${isEmail ? '📧 Email' : '💬 SMS'}
+                                            </span>
+                                        </div>
+                                        <span style="font-size: 11px; color: var(--text-tertiary);">${dateStr}</span>
+                                    </div>
+                                    ${isEmail && msg.subject ? `
+                                        <div style="font-weight: 500; color: var(--text-primary); margin-bottom: 8px;">
+                                            ${msg.subject}
+                                        </div>
+                                    ` : ''}
+                                    <div style="color: var(--text-secondary); white-space: pre-wrap; font-size: 13px;">
+                                        ${msg.body || '(No content)'}
+                                    </div>
+                                    ${isEmail ? `
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 8px;">
+                                            ${isOutbound ? `To: ${msg.to_address}` : `From: ${msg.from_address}`}
+                                            ${fromAccount && isOutbound ? ` • Sent from: ${fromAccount}` : ''}
+                                        </div>
+                                    ` : ''}
+                                    ${!isEmail ? `
+                                        <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 8px;">
+                                            ${isOutbound ? `To: ${msg.to_phone}` : `From: ${msg.from_phone}`}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        });
+                        
+                        historyHTML += `
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                historyHTML += `
+                        </div>
+                    </div>
+                `;
+                
+                tabContent.innerHTML = historyHTML;
+            } catch (error) {
+                tabContent.innerHTML = `
+                    <div class="error">
+                        <p>Error loading conversation history: ${error.message}</p>
+                        <button class="btn btn-primary" onclick="switchContactTab('history')" style="margin-top: 12px;">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function toggleThread(threadId) {
+            const header = document.getElementById(`header-${threadId}`);
+            const content = document.getElementById(`content-${threadId}`);
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                header.classList.add('expanded');
+            } else {
+                content.style.display = 'none';
+                header.classList.remove('expanded');
+            }
+        }
+
+        async function openSendEmailForm(contactId) {
+            const contact = allContacts.find(c => c.id === contactId);
+            if (!contact || !contact.email) {
+                showMessage('Contact has no email address', 'error');
+                return;
+            }
+            
+            document.getElementById('sendEmailContactId').value = contactId;
+            document.getElementById('sendEmailTo').textContent = contact.email;
+            
+            // Generate draft content (same logic as openSendModal)
+            const isNew = contact.type === '2026_new';
+            const timeVariation = 0; // Always use first variation for send form
+            const personalization = generatePersonalizedContent(contact, isNew, 'email', timeVariation);
+            
+            let emailSubject = '';
+            let emailBody = '';
+            
+            if (isNew && contact.type === '2026_new') {
+                // NEW CONTACT - Use formal email template
+                const email = generateFormalEmail(contact, personalization);
+                emailSubject = email.subject;
+                emailBody = email.body;
+            } else {
+                // EXISTING CONTACT - Use casual email template
+                const email = generateCasualEmail(contact, personalization, timeVariation);
+                emailSubject = email.subject;
+                emailBody = email.body;
+            }
+            
+            document.getElementById('sendEmailSubject').value = emailSubject;
+            document.getElementById('sendEmailBody').value = emailBody;
+            
+            // Load available Gmail accounts
+            try {
+                const response = await fetch(`${API_BASE}/gmail/accounts`);
+                const data = await response.json();
+                const accounts = data.accounts || [];
+                const select = document.getElementById('sendEmailFromAccount');
+                select.innerHTML = '';
+                if (accounts.length === 0) {
+                    select.innerHTML = '<option value="">No Gmail accounts configured</option>';
+                } else {
+                    accounts.forEach(account => {
+                        const option = document.createElement('option');
+                        option.value = account;
+                        option.textContent = account;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading Gmail accounts:', e);
+                document.getElementById('sendEmailFromAccount').innerHTML = '<option value="">Error loading accounts</option>';
+            }
+            
+            document.getElementById('sendEmailModal').classList.add('active');
+        }
+
+        function openSendSMSForm(contactId) {
+            const contact = allContacts.find(c => c.id === contactId);
+            if (!contact || !contact.phone) {
+                showMessage('Contact has no phone number', 'error');
+                return;
+            }
+            
+            document.getElementById('sendSMSContactId').value = contactId;
+            document.getElementById('sendSMSTo').textContent = contact.phone;
+            document.getElementById('sendSMSBody').value = '';
+            document.getElementById('sendSMSModal').classList.add('active');
+        }
+
+        // Helper function to fetch with timeout
+        async function fetchWithTimeout(url, options, timeoutMs = 60000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            
+            try {
+                const response = await fetch(url, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                return response;
+            } catch (error) {
+                clearTimeout(timeoutId);
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your internet connection and try again.');
+                }
+                throw error;
+            }
+        }
+
+        async function sendEmail(event) {
+            event.preventDefault();
+            const contactId = document.getElementById('sendEmailContactId').value;
+            const subject = document.getElementById('sendEmailSubject').value;
+            const body = document.getElementById('sendEmailBody').value;
+            
+            if (!subject || !body) {
+                showMessage('Subject and body are required', 'error');
+                return;
+            }
+            
+            const sendBtn = document.querySelector('#sendEmailModal .btn-primary');
+            if (!sendBtn) {
+                showMessage('Send button not found', 'error');
+                return;
+            }
+            
+            const originalText = sendBtn.textContent;
+            const modal = document.getElementById('sendEmailModal');
+            
+            // Store original state to ensure we can always reset
+            let buttonStateReset = false;
+            
+            const resetButton = () => {
+                if (!buttonStateReset && sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = originalText;
+                    buttonStateReset = true;
+                }
+            };
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            const fromAccount = document.getElementById('sendEmailFromAccount').value;
+            if (!fromAccount) {
+                showMessage('Please select an account to send from', 'error');
+                resetButton();
+                return;
+            }
+            
+            try {
+                // Use fetch with timeout (60 seconds - enough for OAuth flow)
+                const response = await fetchWithTimeout(
+                    `${API_BASE}/messages/send-email`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contact_id: contactId,
+                            subject: subject,
+                            body: body,
+                            from_account: fromAccount
+                        })
+                    },
+                    60000 // 60 second timeout
+                );
+                
+                if (!response.ok) {
+                    let errorMessage = 'Failed to send email';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.detail || errorMessage;
+                        
+                        // Provide helpful error messages for common OAuth issues
+                        if (errorMessage.includes('redirect_uri_mismatch') || 
+                            errorMessage.includes('invalid_request') ||
+                            errorMessage.includes('Access blocked')) {
+                            errorMessage = 'OAuth authentication failed. Please check that the account is added as a test user in Google Cloud Console and the redirect URI matches. See integrations/email/SETUP.md for details.';
+                        }
+                    } catch (e) {
+                        // If we can't parse the error, use the status text
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                showMessage('Email sent successfully!', 'success');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+                
+                // Auto-update status to "contacted" if needed
+                const contact = allContacts.find(c => c.id === contactId);
+                if (contact) {
+                    const statusesToUpdate = ['need_to_contact', 'wait', 'queued', 'circle_back'];
+                    if (statusesToUpdate.includes(contact.status)) {
+                        try {
+                            await fetchWithTimeout(`${API_BASE}/contacts/${contactId}`, {
+                                method: 'PATCH',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: 'contacted' })
+                            }, 10000);
+                        } catch (e) {
+                            console.error('Error updating status:', e);
+                        }
+                    }
+                }
+                
+                // Reload history if on history tab
+                if (currentViewTab === 'history' && currentViewContactId === contactId) {
+                    const contact = allContacts.find(c => c.id === contactId);
+                    if (contact) {
+                        await loadContactHistory(contact);
+                    }
+                }
+                
+                // Refresh contacts to update last_contact_date and status
+                loadContacts();
+                
+                // Refresh mailbox if on mailbox tab
+                if (currentMainTab === 'mailbox') {
+                    loadMailbox();
+                }
+            } catch (error) {
+                console.error('Error sending email:', error);
+                let errorMessage = error.message || 'An unexpected error occurred';
+                
+                // Provide user-friendly error messages
+                if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+                    errorMessage = 'Request timed out. This may happen if OAuth authentication is required. Please try again and complete the authentication in the browser window that opens.';
+                } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                }
+                
+                showMessage(`Error: ${errorMessage}`, 'error');
+            } finally {
+                // Always reset button state, even if there was an error
+                resetButton();
+            }
+        }
+
+        async function sendSMS(event) {
+            event.preventDefault();
+            const contactId = document.getElementById('sendSMSContactId').value;
+            const body = document.getElementById('sendSMSBody').value;
+            
+            if (!body) {
+                showMessage('Message body is required', 'error');
+                return;
+            }
+            
+            const sendBtn = document.querySelector('#sendSMSModal .btn-primary');
+            if (!sendBtn) {
+                showMessage('Send button not found', 'error');
+                return;
+            }
+            
+            const originalText = sendBtn.textContent;
+            const modal = document.getElementById('sendSMSModal');
+            
+            // Store original state to ensure we can always reset
+            let buttonStateReset = false;
+            
+            const resetButton = () => {
+                if (!buttonStateReset && sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = originalText;
+                    buttonStateReset = true;
+                }
+            };
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            try {
+                // Use fetch with timeout (30 seconds for SMS)
+                const response = await fetchWithTimeout(
+                    `${API_BASE}/messages/send-sms`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contact_id: contactId,
+                            body: body
+                        })
+                    },
+                    30000 // 30 second timeout
+                );
+                
+                if (!response.ok) {
+                    let errorMessage = 'Failed to send SMS';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.detail || errorMessage;
+                    } catch (e) {
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                showMessage('SMS sent successfully!', 'success');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+                
+                // Reload messages if on messages tab
+                if (currentViewTab === 'messages' && currentViewContactId === contactId) {
+                    const contact = allContacts.find(c => c.id === contactId);
+                    if (contact) {
+                        await loadContactMessages(contact);
+                    }
+                }
+                
+                // Refresh contacts to update last_contact_date
+                loadContacts();
+            } catch (error) {
+                console.error('Error sending SMS:', error);
+                let errorMessage = error.message || 'An unexpected error occurred';
+                
+                // Provide user-friendly error messages
+                if (errorMessage.includes('timeout') || errorMessage.includes('timed out')) {
+                    errorMessage = 'Request timed out. Please check your internet connection and try again.';
+                } else if (errorMessage.includes('Failed to fetch') || errorMessage.includes('NetworkError')) {
+                    errorMessage = 'Network error. Please check your internet connection and try again.';
+                }
+                
+                showMessage(`Error: ${errorMessage}`, 'error');
+            } finally {
+                // Always reset button state, even if there was an error
+                resetButton();
+            }
+        }
+
+        // Reply Email Functions
+        let currentReplyMessage = null;
+        let currentReplyContact = null;
+
+        async function openReplyModalFromMessage(messageId, contactId) {
+            try {
+                // Get message from stored mailbox messages (try both string and number key)
+                const message = mailboxMessages[messageId] || mailboxMessages[Number(messageId)];
+                if (!message) {
+                    console.error('Message not found in mailboxMessages. MessageId:', messageId);
+                    console.log('Available message IDs:', Object.keys(mailboxMessages));
+                    showMessage('Message not found. Please refresh the mailbox.', 'error');
+                    return;
+                }
+                
+                // Fetch contact details
+                const contactResponse = await fetch(`${API_BASE}/contacts/${contactId}`);
+                if (!contactResponse.ok) {
+                    throw new Error('Failed to load contact');
+                }
+                const contact = await contactResponse.json();
+                
+                await openReplyModalWithData(message, contact);
+            } catch (error) {
+                console.error('Error opening reply modal:', error);
+                showMessage(`Error opening reply: ${error.message}`, 'error');
+            }
+        }
+
+        async function openReplyModalWithData(message, contact) {
+            try {
+                
+                currentReplyMessage = message;
+                currentReplyContact = contact;
+                
+                // Populate original email preview
+                const timestamp = message.received_at || message.sent_at || message.created_at;
+                const dateStr = timestamp ? new Date(timestamp).toLocaleString() : '';
+                document.getElementById('originalEmailFrom').textContent = message.from_address || 'Unknown';
+                document.getElementById('originalEmailDate').textContent = dateStr;
+                document.getElementById('originalEmailSubject').textContent = message.subject || '(No subject)';
+                document.getElementById('originalEmailBody').textContent = message.body || '(No content)';
+                
+                // Set form fields
+                document.getElementById('replyEmailContactId').value = contact.id;
+                document.getElementById('replyMessageId').value = message.id;
+                document.getElementById('replyEmailTitle').textContent = `Reply to ${contact.name || 'Contact'}`;
+                document.getElementById('replyEmailTo').textContent = contact.email || message.from_address || 'Unknown';
+                
+                // Generate subject (Re: original subject)
+                const originalSubject = message.subject || '';
+                const replySubject = originalSubject.toLowerCase().startsWith('re:') 
+                    ? originalSubject 
+                    : `Re: ${originalSubject}`;
+                document.getElementById('replyEmailSubject').value = replySubject;
+                
+                // Generate suggested reply
+                await generateSuggestedReply(message, contact);
+                
+                // Load available Gmail accounts
+                try {
+                    const response = await fetch(`${API_BASE}/gmail/accounts`);
+                    const data = await response.json();
+                    const accounts = data.accounts || [];
+                    const select = document.getElementById('replyEmailFromAccount');
+                    select.innerHTML = '';
+                    if (accounts.length === 0) {
+                        select.innerHTML = '<option value="">No Gmail accounts configured</option>';
+                    } else {
+                        accounts.forEach(account => {
+                            const option = document.createElement('option');
+                            option.value = account;
+                            option.textContent = account;
+                            select.appendChild(option);
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error loading Gmail accounts:', e);
+                    document.getElementById('replyEmailFromAccount').innerHTML = '<option value="">Error loading accounts</option>';
+                }
+                
+                // Show modal
+                document.getElementById('replyEmailModal').classList.add('active');
+            } catch (error) {
+                showMessage(`Error opening reply: ${error.message}`, 'error');
+                console.error('Error opening reply modal:', error);
+                throw error;
+            }
+        }
+
+        function closeReplyModal() {
+            document.getElementById('replyEmailModal').classList.remove('active');
+            currentReplyMessage = null;
+            currentReplyContact = null;
+            // Hide original email
+            document.getElementById('originalEmailContent').style.display = 'none';
+            document.getElementById('toggleOriginalBtn').textContent = 'Show Original Email';
+        }
+
+        function toggleOriginalEmail() {
+            const content = document.getElementById('originalEmailContent');
+            const btn = document.getElementById('toggleOriginalBtn');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                btn.textContent = 'Hide Original Email';
+            } else {
+                content.style.display = 'none';
+                btn.textContent = 'Show Original Email';
+            }
+        }
+
+        async function generateSuggestedReply(originalMessage, contact) {
+            // Analyze original message content
+            const originalBody = originalMessage.body || '';
+            const originalSubject = originalMessage.subject || '';
+            
+            // Determine if this is a new or existing contact
+            const isNew = contact.type === '2026_new';
+            
+            // Generate personalized content
+            const personalization = generatePersonalizedContent(contact, isNew, 'email', 0);
+            
+            // Build suggested reply based on original message content
+            let replyBody = '';
+            
+            // Extract key information from original message
+            const hasQuestion = /[?]/.test(originalBody);
+            const isPositive = /(thanks|thank you|great|sounds good|yes|sure|absolutely|definitely)/i.test(originalBody);
+            const mentionsMeeting = /(meeting|call|chat|coffee|lunch|dinner|schedule|calendar)/i.test(originalBody);
+            
+            // Generate appropriate reply
+            if (isNew) {
+                // New contact - more formal
+                replyBody = `Hi ${contact.first_name || contact.name || 'there'},\n\n`;
+                if (isPositive && mentionsMeeting) {
+                    replyBody += `Great to hear from you! I'd be happy to connect. `;
+                } else if (hasQuestion) {
+                    replyBody += `Thanks for reaching out. `;
+                } else {
+                    replyBody += `Thank you for your message. `;
+                }
+                replyBody += `Let me know what works best for you.\n\n`;
+                replyBody += `Best,\n${personalization.your_name || 'Taylor'}`;
+            } else {
+                // Existing contact - more casual
+                const firstName = contact.first_name || contact.name?.split(' ')[0] || 'there';
+                replyBody = `Hi ${firstName},\n\n`;
+                
+                if (isPositive && mentionsMeeting) {
+                    replyBody += `Sounds great! Looking forward to it. `;
+                } else if (hasQuestion) {
+                    replyBody += `Thanks for the note. `;
+                } else {
+                    replyBody += `Appreciate you reaching out. `;
+                }
+                
+                // Add context-aware response
+                if (mentionsMeeting) {
+                    replyBody += `Let's get something on the calendar. `;
+                }
+                
+                replyBody += `\nBest,\n${personalization.your_name || 'Taylor'}`;
+            }
+            
+            // If original message has specific questions, try to address them
+            if (hasQuestion) {
+                const questions = originalBody.match(/[^.!?]*\?/g);
+                if (questions && questions.length > 0) {
+                    replyBody = `Hi ${contact.first_name || contact.name || 'there'},\n\n`;
+                    replyBody += `Thanks for your message. `;
+                    replyBody += `I'll get back to you with more details soon.\n\n`;
+                    replyBody += `Best,\n${personalization.your_name || 'Taylor'}`;
+                }
+            }
+            
+            document.getElementById('replyEmailBody').value = replyBody;
+        }
+
+        async function regenerateReply() {
+            if (currentReplyMessage && currentReplyContact) {
+                await generateSuggestedReply(currentReplyMessage, currentReplyContact);
+                showMessage('Reply regenerated', 'success');
+            }
+        }
+
+        async function sendReplyEmail(event) {
+            event.preventDefault();
+            const contactId = document.getElementById('replyEmailContactId').value;
+            const subject = document.getElementById('replyEmailSubject').value;
+            const body = document.getElementById('replyEmailBody').value;
+            
+            if (!subject || !body) {
+                showMessage('Subject and body are required', 'error');
+                return;
+            }
+            
+            const sendBtn = document.querySelector('#replyEmailModal .btn-primary');
+            if (!sendBtn) {
+                showMessage('Send button not found', 'error');
+                return;
+            }
+            
+            const originalText = sendBtn.textContent;
+            const modal = document.getElementById('replyEmailModal');
+            
+            let buttonStateReset = false;
+            const resetButton = () => {
+                if (!buttonStateReset && sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.textContent = originalText;
+                    buttonStateReset = true;
+                }
+            };
+            
+            sendBtn.disabled = true;
+            sendBtn.textContent = 'Sending...';
+            
+            const fromAccount = document.getElementById('replyEmailFromAccount').value;
+            if (!fromAccount) {
+                showMessage('Please select an account to send from', 'error');
+                resetButton();
+                return;
+            }
+            
+            try {
+                const response = await fetchWithTimeout(
+                    `${API_BASE}/messages/send-email`,
+                    {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contact_id: contactId,
+                            subject: subject,
+                            body: body,
+                            from_account: fromAccount
+                        })
+                    },
+                    60000
+                );
+                
+                if (!response.ok) {
+                    let errorMessage = 'Failed to send email';
+                    try {
+                        const error = await response.json();
+                        errorMessage = error.detail || errorMessage;
+                    } catch (e) {
+                        errorMessage = response.statusText || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+                
+                showMessage('Reply sent successfully!', 'success');
+                if (modal) {
+                    modal.classList.remove('active');
+                }
+                
+                // Refresh mailbox
+                if (currentMainTab === 'mailbox') {
+                    loadMailbox();
+                }
+                
+                // Reload contacts
+                loadContacts();
+                
+                // Reload history if viewing this contact
+                if (currentViewTab === 'history' && currentViewContactId === contactId) {
+                    try {
+                        const contact = allContacts.find(c => c.id === contactId);
+                        if (contact) {
+                            await loadContactHistory(contact);
+                        }
+                    } catch (e) {
+                        console.error('Error reloading history:', e);
+                    }
+                }
+            } catch (error) {
+                showMessage(error.message || 'Failed to send reply', 'error');
+                resetButton();
+            }
+        }
+
+        async function syncEmailMessages() {
+            const syncBtn = event.target;
+            const originalText = syncBtn.textContent;
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Syncing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/sync-email`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to sync emails');
+                }
+                
+                const result = await response.json();
+                showMessage(`Synced ${result.synced} new messages`, 'success');
+                
+                // Reload messages if on messages tab
+                if (currentViewTab === 'messages' && currentViewContactId) {
+                    const contact = allContacts.find(c => c.id === currentViewContactId);
+                    if (contact) {
+                        await loadContactMessages(contact);
+                    }
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = originalText;
             }
         }
 
@@ -2130,6 +3512,278 @@
             if (currentViewContactId) {
                 closeViewDetailsModal();
                 openSendModal(currentViewContactId);
+            }
+        }
+
+        // Main tab switching
+        function switchMainTab(tabName) {
+            currentMainTab = tabName;
+            
+            // Update command center tabs
+            document.querySelectorAll('.command-tab').forEach(tab => {
+                if (tab.getAttribute('data-tab') === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Show/hide tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            if (tabName === 'rolodex') {
+                document.getElementById('rolodexTab').classList.add('active');
+            } else if (tabName === 'mailbox') {
+                document.getElementById('mailboxTab').classList.add('active');
+                loadMailbox();
+            } else if (tabName === 'stats') {
+                document.getElementById('statsTab').classList.add('active');
+                updateStats(allContacts);
+            }
+        }
+
+        // Keep command center expanded when clicking tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const commandCenter = document.getElementById('commandCenter');
+            const commandTabs = document.querySelectorAll('.command-tab');
+            
+            commandTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    commandCenter.classList.add('expanded');
+                    // Auto-collapse after 2 seconds if not hovering
+                    setTimeout(() => {
+                        if (!commandCenter.matches(':hover')) {
+                            commandCenter.classList.remove('expanded');
+                        }
+                    }, 2000);
+                });
+            });
+        });
+
+        // Mailbox functions
+        let mailboxMessages = {}; // Store messages by ID for quick lookup
+
+        async function loadMailbox() {
+            const inboxList = document.getElementById('inboxList');
+            const outboxList = document.getElementById('outboxList');
+            
+            inboxList.innerHTML = '<div class="loading">Loading inbox...</div>';
+            outboxList.innerHTML = '<div class="loading">Loading outbox...</div>';
+            
+            try {
+                // Load inbox (CRM responses)
+                const inboxResponse = await fetch(`${API_BASE}/messages?crm_responses_only=true&direction=inbound`);
+                const inboxMessages = inboxResponse.ok ? await inboxResponse.json() : [];
+                
+                // Load outbox (CRM sent)
+                const outboxResponse = await fetch(`${API_BASE}/messages?crm_sent_only=true&direction=outbound`);
+                const outboxMessages = outboxResponse.ok ? await outboxResponse.json() : [];
+                
+                // Store messages in lookup map (use string keys for consistency)
+                mailboxMessages = {};
+                [...inboxMessages, ...outboxMessages].forEach(msg => {
+                    if (msg.id !== undefined && msg.id !== null) {
+                        // Store with both string and number key for compatibility
+                        const idKey = String(msg.id);
+                        mailboxMessages[idKey] = msg;
+                        mailboxMessages[msg.id] = msg; // Also store with numeric key
+                    }
+                });
+                
+                // Fetch contact names for all unique contact IDs
+                const contactIds = new Set();
+                inboxMessages.forEach(msg => { if (msg.contact_id) contactIds.add(msg.contact_id); });
+                outboxMessages.forEach(msg => { if (msg.contact_id) contactIds.add(msg.contact_id); });
+                
+                const contactMap = {};
+                // Use existing allContacts array if available, otherwise fetch
+                if (allContacts && allContacts.length > 0) {
+                    allContacts.forEach(contact => {
+                        if (contact.id) contactMap[contact.id] = contact.name;
+                    });
+                } else {
+                    // Fetch contacts for missing ones
+                    for (const contactId of contactIds) {
+                        if (!contactMap[contactId]) {
+                            try {
+                                const contactResponse = await fetch(`${API_BASE}/contacts/${contactId}`);
+                                if (contactResponse.ok) {
+                                    const contact = await contactResponse.json();
+                                    contactMap[contactId] = contact.name;
+                                }
+                            } catch (e) {
+                                console.error(`Error fetching contact ${contactId}:`, e);
+                            }
+                        }
+                    }
+                }
+                
+                // Render inbox
+                if (inboxMessages.length === 0) {
+                    inboxList.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--text-secondary);">No inbox messages</div>';
+                } else {
+                    let inboxHTML = '';
+                    inboxMessages.forEach(msg => {
+                        const dateStr = msg.received_at ? new Date(msg.received_at).toLocaleString() : '';
+                        const contactName = contactMap[msg.contact_id] || null;
+                        const displayName = contactName || msg.from_address || 'Unknown';
+                        const unknownIndicator = !contactName ? '<span class="unknown-contact">(Unknown Contact)</span>' : '';
+                        // Ensure message ID and contact ID are properly escaped
+                        const msgId = msg.id || '';
+                        const contactId = msg.contact_id || '';
+                        
+                        inboxHTML += `
+                            <div class="mailbox-item" onclick="openReplyModalFromMessage('${msgId}', '${contactId}')">
+                                <div class="mailbox-item-header">
+                                    <div class="mailbox-item-from">${displayName}${unknownIndicator}</div>
+                                    <div class="mailbox-item-date">${dateStr}</div>
+                                </div>
+                                <div class="mailbox-item-subject">${msg.subject || '(No subject)'}</div>
+                                <div class="mailbox-item-preview">${(msg.body || '').substring(0, 100)}...</div>
+                            </div>
+                        `;
+                    });
+                    inboxList.innerHTML = inboxHTML;
+                }
+                
+                // Render outbox
+                if (outboxMessages.length === 0) {
+                    outboxList.innerHTML = '<div style="text-align: center; padding: 32px; color: var(--text-secondary);">No outbox messages</div>';
+                } else {
+                    let outboxHTML = '';
+                    outboxMessages.forEach(msg => {
+                        const dateStr = msg.sent_at ? new Date(msg.sent_at).toLocaleString() : '';
+                        const contactName = contactMap[msg.contact_id] || null;
+                        const displayName = contactName || msg.to_address || 'Unknown';
+                        const unknownIndicator = !contactName ? '<span class="unknown-contact">(Unknown Contact)</span>' : '';
+                        
+                        outboxHTML += `
+                            <div class="mailbox-item" onclick="viewContactDetails('${msg.contact_id}')">
+                                <div class="mailbox-item-header">
+                                    <div class="mailbox-item-from">${displayName}${unknownIndicator}</div>
+                                    <div class="mailbox-item-date">${dateStr}</div>
+                                </div>
+                                <div class="mailbox-item-subject">${msg.subject || '(No subject)'}</div>
+                                <div class="mailbox-item-preview">${(msg.body || '').substring(0, 100)}...</div>
+                            </div>
+                        `;
+                    });
+                    outboxList.innerHTML = outboxHTML;
+                }
+            } catch (error) {
+                inboxList.innerHTML = `<div class="error">Error loading inbox: ${error.message}</div>`;
+                outboxList.innerHTML = `<div class="error">Error loading outbox: ${error.message}</div>`;
+            }
+        }
+
+        async function syncAllEmails() {
+            const syncBtn = event.target;
+            const originalText = syncBtn.textContent;
+            syncBtn.disabled = true;
+            syncBtn.textContent = 'Syncing...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/sync-email`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to sync emails');
+                }
+                
+                const result = await response.json();
+                showMessage(`Synced ${result.synced} new messages`, 'success');
+                
+                // Reload mailbox
+                if (currentMainTab === 'mailbox') {
+                    loadMailbox();
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = originalText;
+            }
+        }
+
+        // Contact details modal functions
+        async function saveContactFromDetails(event) {
+            event.preventDefault();
+            const contactId = document.getElementById('editContactIdInModal').value;
+            
+            const updateData = {
+                name: document.getElementById('editNameInModal').value,
+                email: document.getElementById('editEmailInModal').value,
+                phone: document.getElementById('editPhoneInModal').value,
+                status: document.getElementById('editStatusInModal').value,
+                type: document.getElementById('editTypeInModal').value,
+                group: document.getElementById('editGroupInModal').value,
+                linkedin_url: document.getElementById('editLinkedInInModal').value,
+                company: document.getElementById('editCompanyInModal').value,
+                title: document.getElementById('editTitleInModal').value,
+                location: document.getElementById('editLocationInModal').value,
+                notes: document.getElementById('editNotesInModal').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${contactId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updateData)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to update contact');
+                }
+                
+                showMessage('Contact updated successfully!', 'success');
+                
+                // Reload contact and refresh view
+                const contact = await response.json();
+                await renderContactTab(contact);
+                
+                // Refresh contacts list
+                loadContacts();
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        function cancelEditDetails() {
+            if (currentViewContactId) {
+                currentViewTab = 'details';
+                isEditingDetails = false;
+                viewContactDetails(currentViewContactId);
+            }
+        }
+
+        async function deleteContactFromDetails() {
+            const contactId = document.getElementById('editContactIdInModal').value;
+            if (!contactId) return;
+            
+            if (!confirm('Are you sure you want to delete this contact?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/contacts/${contactId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to delete contact');
+                }
+                
+                showMessage('Contact deleted successfully', 'success');
+                closeViewDetailsModal();
+                loadContacts();
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 

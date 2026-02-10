@@ -161,6 +161,105 @@ class NotionContactClient:
         
         return None
     
+    def _clean_group_value(self, group_value: Optional[str]) -> Optional[str]:
+        """
+        Clean and normalize group value by removing trailing parentheses and mapping to standard values.
+        This handles cases where Notion has values like "McKinsey)" instead of "McK".
+        Used when reading from Notion.
+        """
+        if not group_value:
+            return None
+        # Strip trailing parentheses and whitespace
+        cleaned = group_value.strip().rstrip(')').strip()
+        if not cleaned:
+            return None
+        
+        # Normalize to standard group values (case-insensitive)
+        cleaned_lower = cleaned.lower()
+        group_map = {
+            'fam': 'fam',
+            'family': 'fam',
+            'mck': 'McK',
+            'mckinsey': 'McK',
+            'mckinsey)': 'McK',  # Handle with parenthesis
+            'pea': 'PEA',
+            'phillips exeter academy': 'PEA',
+            'exeter': 'PEA',
+            'gu': 'GU',
+            'georgetown': 'GU',
+            'georgetown university': 'GU',
+            'bp': 'BP',
+            'berkshire partners': 'BP',
+            'berkshire': 'BP',
+            'mba': 'MBA',
+            'mvnx': 'MVNX',
+            'mavnox': 'MVNX',
+            'other': 'other'
+        }
+        
+        # Try exact match first
+        if cleaned_lower in group_map:
+            return group_map[cleaned_lower]
+        
+        # Try partial match
+        for key, value in group_map.items():
+            if key in cleaned_lower or cleaned_lower in key:
+                return value
+        
+        # If no match, return cleaned original (might be a new group value)
+        return cleaned
+    
+    def _normalize_group_for_notion(self, group_value: Optional[str]) -> Optional[str]:
+        """
+        Normalize group value for writing to Notion.
+        Converts internal format to Notion format (standardizes case and format).
+        Used when writing to Notion.
+        """
+        if not group_value:
+            return None
+        
+        # Clean the value first
+        cleaned = group_value.strip()
+        if not cleaned:
+            return None
+        
+        # Map internal values to Notion format
+        # Notion typically uses the standard abbreviations (McK, PEA, GU, etc.)
+        # but we normalize case and handle variations
+        cleaned_lower = cleaned.lower()
+        notion_group_map = {
+            'fam': 'Fam',
+            'family': 'Fam',
+            'mck': 'McK',
+            'mckinsey': 'McK',
+            'pea': 'PEA',
+            'phillips exeter academy': 'PEA',
+            'exeter': 'PEA',
+            'gu': 'GU',
+            'georgetown': 'GU',
+            'georgetown university': 'GU',
+            'bp': 'BP',
+            'berkshire partners': 'BP',
+            'berkshire': 'BP',
+            'mba': 'MBA',
+            'mvnx': 'MVNX',
+            'mavnox': 'MVNX',
+            'other': 'Other'
+        }
+        
+        # Try exact match first
+        if cleaned_lower in notion_group_map:
+            return notion_group_map[cleaned_lower]
+        
+        # Try partial match
+        for key, value in notion_group_map.items():
+            if key in cleaned_lower or cleaned_lower in key:
+                return value
+        
+        # If no match, return the cleaned value with proper capitalization
+        # (capitalize first letter, keep rest as-is)
+        return cleaned[0].upper() + cleaned[1:] if len(cleaned) > 1 else cleaned.upper()
+    
     def _find_property_key(self, properties: Dict, possible_keys: List[str]) -> Optional[str]:
         """
         Find a property key in Notion properties, trying multiple variations.
@@ -224,6 +323,11 @@ class NotionContactClient:
         raw_name = self._get_property_value(properties, ["Contact", "Name", "name"], "title")
         contact_name = raw_name.strip() if raw_name else "Unnamed Contact"
         
+        # Get last_edited_time from Notion page metadata
+        last_edited_time = None
+        if "last_edited_time" in notion_page:
+            last_edited_time = notion_page["last_edited_time"]
+        
         contact = {
             "id": notion_page.get("id"),
             "name": contact_name,
@@ -231,9 +335,9 @@ class NotionContactClient:
             "phone": self._get_property_value(properties, ["Phone", "phone"], "phone_number"),
             "status": normalized_status,  # Normalized to lowercase
             "type": normalized_type,  # Normalized to lowercase
-            "group": self._get_property_value(properties, ["Group", "group"], "status"),  # Your Group is status type
+            "group": self._clean_group_value(self._get_property_value(properties, ["Group", "group"], "status")),  # Your Group is status type, clean trailing parentheses
             "relationship_type": self._get_property_value(properties, ["Relationship Type", "relationship_type", "Relationship type"], "status"),
-            "title": self._get_property_value(properties, ["Title", "title", "Role", "role"], "rich_text"),
+            "title": self._get_property_value(properties, ["Role", "role", "Title", "title"], "rich_text"),  # Prioritize Role over Title
             "company": self._get_property_value(properties, ["Company", "company"], "rich_text"),
             "industry": self._get_property_value(properties, ["Industry", "industry"], "rich_text"),
             "location": self._get_property_value(properties, ["Location", "location"], "rich_text"),
@@ -245,6 +349,7 @@ class NotionContactClient:
             "created_date": self._get_property_value(properties, ["Created date", "Created Date", "created_date"], "date"),
             "next_followup_date": self._get_property_value(properties, ["Next followup date", "Next Followup Date", "next_followup_date"], "date"),
             "followup_context": self._get_property_value(properties, ["Followup context", "Followup Context", "followup_context"], "rich_text"),
+            "_notion_last_edited_time": last_edited_time,  # Internal field for conflict resolution
         }
         
         return contact
@@ -373,20 +478,53 @@ class NotionContactClient:
                 "title": [{"text": {"content": str(contact["name"])}}]
             }
         
+        # Helper function to convert status from internal format to Notion format
+        def normalize_status_to_notion(status_value):
+            """Convert internal status format (lowercase with underscores) to Notion format (capitalized with spaces)."""
+            if not status_value:
+                return None
+            status_map = {
+                "wait": "Wait",
+                "queued": "Queued",
+                "queue": "Queue",  # Handle both "queue" and "queued" variations
+                "need_to_contact": "Need to Contact",
+                "contacted": "Contacted",
+                "circle_back": "Circle Back",
+                "scheduled": "Scheduled",
+                "done": "Done",
+                "ghosted": "Ghosted"
+            }
+            return status_map.get(status_value, status_value.replace("_", " ").title())
+        
+        # Helper function to convert type from internal format to Notion format
+        def normalize_type_to_notion(type_value):
+            """Convert internal type format to Notion format."""
+            if not type_value:
+                return None
+            if type_value == "2026_new":
+                return "2026 New"
+            elif type_value == "existing":
+                return "Existing"
+            return type_value
+        
+        # Helper function for group normalization (needed for lambda)
+        def normalize_group_for_notion(group_value):
+            return self._normalize_group_for_notion(group_value)
+        
         # Optional fields - only include if they have values
         # Format: (field_name, [possible_notion_names], mapper_function)
         field_mappings = [
             ("email", ["Email", "email"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),  # Your Email is rich_text
             ("phone", ["Phone", "phone"], lambda v: {"phone_number": v}),
-            ("status", ["Status", "status"], lambda v: {"status": {"name": v}} if v else None),  # Your Status is status type
-            ("type", ["Type", "type"], lambda v: {"status": {"name": v}} if v else None),  # Your Type is status type
-            ("group", ["Group", "group"], lambda v: {"status": {"name": v}} if v else None),  # Your Group is status type
+            ("status", ["Status", "status"], lambda v: {"status": {"name": normalize_status_to_notion(v)}} if v else None),  # Your Status is status type
+            ("type", ["Type", "type"], lambda v: {"status": {"name": normalize_type_to_notion(v)}} if v else None),  # Your Type is status type
+            ("group", ["Group", "group"], lambda v: {"status": {"name": normalize_group_for_notion(v)}} if v else None),  # Your Group is status type, normalize before writing
             ("relationship_type", ["Relationship Type", "relationship_type"], lambda v: {"status": {"name": v}} if v else None),
-            ("title", ["Title", "title"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
+            ("title", ["Role", "role", "Title", "title"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),  # Prioritize Role over Title
             ("company", ["Company", "company"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
             ("industry", ["Industry", "industry"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
             ("location", ["Location", "location"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
-            ("linkedin_url", ["Linkedin", "LinkedIn URL", "linkedin_url", "LinkedIn"], lambda v: {"url": v}),
+            ("linkedin_url", ["Linkedin", "LinkedIn URL", "linkedin_url", "LinkedIn"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),  # Changed to rich_text
             ("notes", ["Notes", "notes"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
             ("followup_context", ["Followup context", "followup_context"], lambda v: {"rich_text": [{"text": {"content": str(v)}}]}),
             ("call_count", ["Count", "Call Count", "call_count"], lambda v: {"number": int(v)} if v is not None else None),
@@ -403,8 +541,18 @@ class NotionContactClient:
         # Map regular fields
         for field, possible_names, mapper in field_mappings:
             if field in contact and contact[field] is not None:
-                mapped_value = mapper(contact[field])
+                # Skip empty strings - they should be treated as None
+                value = contact[field]
+                if isinstance(value, str) and not value.strip():
+                    continue
+                
+                mapped_value = mapper(value)
                 if mapped_value is not None:
+                    # For phone_number, ensure it's not an empty string
+                    if "phone_number" in mapped_value:
+                        if not mapped_value["phone_number"] or not mapped_value["phone_number"].strip():
+                            continue  # Skip empty phone numbers
+                    
                     notion_key = self._get_notion_property_name(existing_properties, possible_names)
                     properties[notion_key] = mapped_value
         
@@ -412,6 +560,9 @@ class NotionContactClient:
         for field, possible_names in date_mappings:
             if field in contact and contact[field]:
                 date_value = contact[field]
+                # Skip empty strings
+                if isinstance(date_value, str) and not date_value.strip():
+                    continue
                 notion_key = self._get_notion_property_name(existing_properties, possible_names)
                 if isinstance(date_value, str):
                     properties[notion_key] = {"date": {"start": date_value}}
@@ -553,11 +704,17 @@ class NotionContactClient:
             )
             return self._map_notion_to_contact(page)
         except APIResponseError as e:
-            logger.error(f"Notion API error creating contact: {e}")
-            raise
+            error_msg = str(e)
+            # Log the full error details for debugging
+            logger.error(f"Notion API error creating contact: {error_msg}")
+            if hasattr(e, 'body') and e.body:
+                logger.error(f"Notion API error body: {e.body}")
+            # Re-raise with a more user-friendly message
+            raise ValueError(f"Failed to create contact in Notion: {error_msg}")
         except Exception as e:
-            logger.error(f"Unexpected error creating contact: {e}")
-            raise
+            error_msg = str(e)
+            logger.error(f"Unexpected error creating contact: {error_msg}", exc_info=True)
+            raise ValueError(f"Failed to create contact: {error_msg}")
     
     def update_contact(self, contact_id: str, contact: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -593,11 +750,17 @@ class NotionContactClient:
         except APIResponseError as e:
             if e.code == "object_not_found":
                 raise ValueError(f"Contact {contact_id} not found")
-            logger.error(f"Notion API error updating contact {contact_id}: {e}")
-            raise
+            error_msg = str(e)
+            # Log the full error details for debugging
+            logger.error(f"Notion API error updating contact {contact_id}: {error_msg}")
+            if hasattr(e, 'body') and e.body:
+                logger.error(f"Notion API error body: {e.body}")
+            # Re-raise with a more user-friendly message
+            raise ValueError(f"Failed to update contact in Notion: {error_msg}")
         except Exception as e:
-            logger.error(f"Unexpected error updating contact {contact_id}: {e}")
-            raise
+            error_msg = str(e)
+            logger.error(f"Unexpected error updating contact {contact_id}: {error_msg}", exc_info=True)
+            raise ValueError(f"Failed to update contact: {error_msg}")
     
     def delete_contact(self, contact_id: str) -> bool:
         """
