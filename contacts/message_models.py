@@ -72,6 +72,8 @@ class MessageResponse(MessageBase):
     received_at: Optional[datetime] = Field(None, description="Received timestamp")
     created_at: datetime = Field(..., description="Created timestamp")
     from_account: Optional[str] = Field(None, description="Account email that sent the message (for CRM tracking)")
+    flagged: Optional[bool] = Field(False, description="Whether the message is flagged (local only)")
+    archived: Optional[bool] = Field(False, description="Whether the message is archived (local only)")
     
     class Config:
         from_attributes = True
@@ -100,3 +102,33 @@ class MessageFilter(BaseModel):
     crm_responses_only: Optional[bool] = Field(False, description="Only show responses to CRM-sent emails (for inbox)")
     limit: Optional[int] = Field(100, description="Maximum number of messages to return")
     offset: Optional[int] = Field(0, description="Offset for pagination")
+
+
+class MessageDraftRequest(BaseModel):
+    """Model for requesting a message draft."""
+    contact_id: str = Field(..., description="Contact ID to generate draft for")
+    batch_id: Optional[str] = Field(None, description="Optional batch ID for variation tracking")
+    recent_draft_ids: Optional[list[str]] = Field(None, description="IDs of recent drafts in this batch to avoid repetition")
+    channel: Optional[str] = Field(
+        None,
+        description="Optional channel override for draft generation: 'email' or 'text'"
+    )
+
+    @validator("channel")
+    def validate_draft_channel(cls, v):
+        if v is None:
+            return v
+        normalized = v.strip().lower()
+        # Allow 'sms' as an alias for 'text' (draft response uses 'text')
+        if normalized == "sms":
+            normalized = "text"
+        if normalized not in {"email", "text"}:
+            raise ValueError("channel must be 'email' or 'text'")
+        return normalized
+
+
+class MessageDraftResponse(BaseModel):
+    """Model for message draft response."""
+    subject: str = Field(..., description="Email subject (empty for texts)")
+    body: str = Field(..., description="Message body")
+    channel: str = Field(..., description="Message channel: 'email' or 'text'")

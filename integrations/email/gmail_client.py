@@ -319,11 +319,36 @@ class GmailClient:
                 profile = service.users().getProfile(userId='me').execute()
                 from_address = profile['emailAddress']
             
-            # Create message
-            message = MIMEText(body)
+            # Create HTML email with proper styling to ensure full-width display in Gmail
+            # Convert plain text line breaks to HTML
+            html_body = body.replace('\n', '<br>')
+            
+            # Create multipart message with both plain text and HTML
+            message = MIMEMultipart('alternative')
             message['to'] = to_address
             message['from'] = from_address
             message['subject'] = subject
+            
+            # Add plain text version
+            text_part = MIMEText(body, 'plain')
+            message.attach(text_part)
+            
+            # Add HTML version with full-width styling
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+            </head>
+            <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333; max-width: 100%; width: 100%;">
+                <div style="max-width: 100%; width: 100%; padding: 20px;">
+                    {html_body}
+                </div>
+            </body>
+            </html>
+            """
+            html_part = MIMEText(html_content, 'html')
+            message.attach(html_part)
             
             # Add X-CRM-Sent header to identify CRM-sent emails
             message['X-CRM-Sent'] = 'true'

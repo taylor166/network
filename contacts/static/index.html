@@ -780,10 +780,49 @@
             border-bottom: 1px solid var(--border-color);
             cursor: pointer;
             transition: background 0.15s ease;
+            position: relative;
+            border-left: 3px solid transparent;
         }
 
         .mailbox-item:hover {
             background: var(--bg-tertiary);
+        }
+
+        .mailbox-item.flagged {
+            border-left-color: #10b981;
+        }
+
+        .mailbox-item-actions {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .mailbox-action-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .mailbox-action-btn:hover {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .mailbox-action-btn.flagged {
+            color: #10b981;
         }
 
         .mailbox-item-header {
@@ -1212,11 +1251,12 @@
                 <h2 id="viewDetailsTitle">Contact Details</h2>
                 <button class="close-btn" onclick="closeViewDetailsModal()">&times;</button>
             </div>
+            <div style="border-bottom: 1px solid var(--border-color); padding: 0 20px; display: flex; gap: 24px;">
+                <button class="tab-btn" data-tab="details" onclick="switchContactTab('details')" style="padding: 12px 0; border: none; background: none; color: var(--text-primary); font-weight: 600; font-size: 14px; cursor: pointer; border-bottom: 2px solid var(--primary-color);">Details</button>
+                <button class="tab-btn" data-tab="history" onclick="switchContactTab('history')" style="padding: 12px 0; border: none; background: none; color: var(--text-secondary); font-weight: 400; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent;">History</button>
+            </div>
             <div id="viewDetailsContent" style="max-height: 70vh; overflow-y: auto;">
                 <!-- Content will be populated by JavaScript -->
-            </div>
-            <div id="viewDetailsActions" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
-                <button type="button" class="btn btn-secondary" onclick="closeViewDetailsModal()">Close</button>
             </div>
         </div>
     </div>
@@ -1330,6 +1370,10 @@
             <form onsubmit="sendSMS(event)">
                 <input type="hidden" id="sendSMSContactId">
                 <div class="form-group">
+                    <label>From</label>
+                    <div id="sendSMSFrom" style="color: var(--text-primary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;"></div>
+                </div>
+                <div class="form-group">
                     <label>To</label>
                     <div id="sendSMSTo" style="color: var(--text-primary); padding: 8px; background: var(--bg-tertiary); border-radius: 4px;"></div>
                 </div>
@@ -1348,6 +1392,7 @@
 
     <script>
         const API_BASE = '/api';
+        const DEFAULT_SMS_FROM_NUMBER = '203-592-1825';
         let allContacts = [];
         let activeFilters = {
             status: [],
@@ -1784,7 +1829,7 @@
                         <td>
                             <div class="action-buttons">
                                 <button class="btn btn-secondary btn-small" onclick="openDraftModal('${contact.id}')">Draft</button>
-                                <button class="btn btn-primary btn-small" onclick="openSendEmailForm('${contact.id}')">Send</button>
+                                <button class="btn btn-primary btn-small" onclick="openSendForm('${contact.id}')">Send</button>
                             </div>
                         </td>
                     </tr>
@@ -2361,81 +2406,72 @@
             openSendModal(contactId);
         }
 
-        function openSendModal(contactId) {
+        async function openSendModal(contactId) {
             const contact = allContacts.find(c => c.id === contactId);
             if (!contact) {
                 showMessage('Contact not found', 'error');
                 return;
             }
 
-            // Determine message type based on contact info (following channel rules)
-            const hasEmail = contact.email && contact.email.trim() !== '';
-            const hasPhone = contact.phone && contact.phone.trim() !== '';
-            
-            let messageType = 'email';
-            if (hasPhone && hasEmail) {
-                // Both available - default to text
-                messageType = 'text';
-            } else if (hasPhone) {
-                messageType = 'text';
-            } else if (hasEmail) {
-                messageType = 'email';
-            } else {
-                // Neither - default to email
-                messageType = 'email';
-            }
-
-            // Determine if this is a new or existing contact
-            const isNew = isNewContact(contact);
-            
-            // Calculate time variation (0 = first time, 1+ = variations for same person over time)
-            let timeVariation = 0;
-            if (!isNew && contact.last_contact_date) {
-                const daysSince = getDaysSinceLastContact(contact);
-                // If it's been more than 6 months, use variation 1
-                if (daysSince > 180) {
-                    timeVariation = 1;
-                }
-                // If it's been more than a year, use variation 2
-                if (daysSince > 365) {
-                    timeVariation = 2;
-                }
-            }
-
-            // Generate personalized content
-            const personalization = generatePersonalizedContent(contact, isNew, messageType, timeVariation);
-            
-            let draftContent = '';
-
-            if (messageType === 'email') {
-                document.getElementById('sendModalTitle').textContent = 'Draft Email';
-                document.getElementById('draftType').textContent = `To: ${contact.email || 'No email'}`;
-                
-                if (isNew) {
-                    // NEW OUTREACH - Use formal template
-                    const email = generateFormalEmail(contact, personalization);
-                    draftContent = `Subject: ${email.subject}\n\n${email.body}`;
-                } else {
-                    // EXISTING CONTACT - Use casual template
-                    const email = generateCasualEmail(contact, personalization, timeVariation);
-                    draftContent = `Subject: ${email.subject}\n\n${email.body}`;
-                }
-            } else {
-                // TEXT MESSAGE
-                document.getElementById('sendModalTitle').textContent = 'Draft Text Message';
-                document.getElementById('draftType').textContent = `To: ${contact.phone || 'No phone'}`;
-                
-                if (isNew && contact.type === '2026_new') {
-                    // NEW CONTACT - Use formal text template
-                    draftContent = generateFormalText(contact, personalization);
-                } else {
-                    // EXISTING CONTACT - Use casual text template
-                    draftContent = generateCasualText(contact, personalization, timeVariation);
-                }
-            }
-
-            document.getElementById('draftContent').textContent = draftContent;
+            // Show loading state
+            document.getElementById('sendModalTitle').textContent = 'Generating Draft...';
+            document.getElementById('draftType').textContent = 'Please wait...';
+            document.getElementById('draftContent').textContent = 'Generating personalized message using your writing guides...';
             document.getElementById('sendModal').classList.add('active');
+
+            try {
+                // Call backend API to generate draft using markdown files as context
+                const response = await fetch('/api/messages/generate-draft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contact_id: contactId,
+                        batch_id: null, // Could be enhanced to track batches
+                        recent_draft_ids: null, // Could be enhanced to track recent drafts
+                        channel: 'email' // Force email drafts for the Send Email form
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+
+                const draft = await response.json();
+
+                // Format the draft for display
+                let draftContent = '';
+                if (draft.channel === 'email') {
+                    document.getElementById('sendModalTitle').textContent = 'Draft Email';
+                    document.getElementById('draftType').textContent = `To: ${contact.email || 'No email'}`;
+                    draftContent = `Subject: ${draft.subject}\n\n${draft.body}`;
+                } else {
+                    document.getElementById('sendModalTitle').textContent = 'Draft Text Message';
+                    document.getElementById('draftType').textContent = `To: ${contact.phone || 'No phone'}`;
+                    draftContent = draft.body;
+                }
+
+                document.getElementById('draftContent').textContent = draftContent;
+                
+                // Store draft data for sending
+                document.getElementById('sendModal').dataset.draftSubject = draft.subject || '';
+                document.getElementById('sendModal').dataset.draftBody = draft.body;
+                document.getElementById('sendModal').dataset.draftChannel = draft.channel;
+
+            } catch (error) {
+                console.error('Error generating draft:', error);
+                document.getElementById('sendModalTitle').textContent = 'Error Generating Draft';
+                document.getElementById('draftType').textContent = 'Error';
+                document.getElementById('draftContent').textContent = 
+                    `Failed to generate draft: ${error.message}\n\n` +
+                    `Please check that:\n` +
+                    `1. ANTHROPIC_API_KEY is set in your environment\n` +
+                    `2. The writing/ folder contains the markdown guide files\n` +
+                    `3. The backend server is running\n\n` +
+                    `You can still use the old template system by modifying the code.`;
+            }
         }
 
         function closeSendModal() {
@@ -2480,20 +2516,7 @@
 
                 document.getElementById('viewDetailsTitle').textContent = contact.name || 'Contact Details';
                 
-                // Build tabs - use data attributes for reliable matching
-                const tabsHTML = `
-                    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px;">
-                        <button class="tab-btn" data-tab="details" onclick="switchContactTab('details')" style="padding: 8px 16px; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
-                            Details
-                        </button>
-                        <button class="tab-btn" data-tab="history" onclick="switchContactTab('history')" style="padding: 8px 16px; background: none; border: none; color: var(--text-secondary); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s;">
-                            History
-                        </button>
-                    </div>
-                    <div id="contactTabContent"></div>
-                `;
-                
-                document.getElementById('viewDetailsContent').innerHTML = tabsHTML;
+                // Show form directly without tabs to match Add Contact modal
                 await renderContactTab(contact);
                 document.getElementById('viewDetailsModal').classList.add('active');
             } catch (error) {
@@ -2530,153 +2553,144 @@
         }
 
         async function renderContactTab(contact) {
-            const tabContent = document.getElementById('contactTabContent');
+            const viewContent = document.getElementById('viewDetailsContent');
             
-            if (currentViewTab === 'details') {
-                // Build editable form (like Edit modal)
-                const statusOptions = ['wait', 'queued', 'need_to_contact', 'contacted', 'circle_back', 'scheduled', 'done', 'ghosted'];
-                const typeOptions = ['', 'existing', '2026_new'];
-                const groupOptions = ['', 'Fam', 'McK', 'PEA', 'GU', 'BP', 'MBA', 'MVNX', 'Other'];
-                
-                // Escape HTML to prevent XSS and ensure values display correctly
-                const escapeHtml = (text) => {
-                    if (text == null || text === undefined) return '';
-                    return String(text)
-                        .replace(/&/g, '&amp;')
-                        .replace(/</g, '&lt;')
-                        .replace(/>/g, '&gt;')
-                        .replace(/"/g, '&quot;')
-                        .replace(/'/g, '&#039;');
-                };
-                
-                let detailsHTML = `
-                    <form id="editContactFormInModal" onsubmit="saveContactFromDetails(event)">
-                        <input type="hidden" id="editContactIdInModal" value="${escapeHtml(contact.id)}">
-                        
-                        <div class="form-row">
-                            <div class="form-group required">
-                                <label>Name</label>
-                                <input type="text" id="editNameInModal" value="${escapeHtml(contact.name || '')}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Phone</label>
-                                <input type="tel" id="editPhoneInModal" value="${escapeHtml(contact.phone || '')}">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Email</label>
-                                <input type="email" id="editEmailInModal" value="${escapeHtml(contact.email || '')}">
-                            </div>
-                            <div class="form-group">
-                                <label>Type</label>
-                                <select id="editTypeInModal">
-                                    ${typeOptions.map(opt => {
-                                        // Normalize type for comparison: handle both "existing"/"2026_new" and "Existing"/"2026 New"
-                                        const contactType = (contact.type || '').toLowerCase().trim();
-                                        const optLower = (opt || '').toLowerCase().trim();
-                                        const isSelected = contactType === optLower || 
-                                                          (contactType === 'existing' && optLower === 'existing') ||
-                                                          (contactType === '2026_new' && optLower === '2026_new') ||
-                                                          (contactType === '2026 new' && optLower === '2026_new');
-                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${opt === '2026_new' ? '2026 New' : (opt === 'existing' ? 'Existing' : (opt || '-- Select --'))}</option>`;
-                                    }).join('')}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Status</label>
-                                <select id="editStatusInModal">
-                                    ${statusOptions.map(opt => {
-                                        // Normalize status for comparison (handle both formats)
-                                        const contactStatus = (contact.status || '').toLowerCase().replace(/\s+/g, '_').trim();
-                                        const optLower = opt.toLowerCase().trim();
-                                        const isSelected = contactStatus === optLower;
-                                        // Display with proper capitalization
-                                        const displayText = opt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayText}</option>`;
-                                    }).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>LinkedIn URL</label>
-                                <input type="url" id="editLinkedInInModal" value="${escapeHtml(contact.linkedin_url || '')}">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Group</label>
-                                <select id="editGroupInModal">
-                                    ${groupOptions.map(opt => {
-                                        // Normalize the contact's group value to remove any parentheses or formatting issues
-                                        const normalizedGroup = normalizeGroupValue(contact.group || '');
-                                        const isSelected = normalizedGroup === opt;
-                                        // Display clean names without any parentheses
-                                        const displayName = opt === 'Fam' ? 'Family' : 
-                                                          (opt === 'McK' ? 'McKinsey' : 
-                                                          (opt === 'PEA' ? 'Exeter' : 
-                                                          (opt === 'GU' ? 'Georgetown' : 
-                                                          (opt === 'BP' ? 'Berkshire' : 
-                                                          (opt === 'MBA' ? 'MBA' : 
-                                                          (opt === 'MVNX' ? 'Mavnox' : 
-                                                          (opt === 'Other' ? 'Other' : '-- Select --')))))));
-                                        return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayName}</option>`;
-                                    }).join('')}
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Role</label>
-                                <input type="text" id="editTitleInModal" value="${escapeHtml(contact.title || '')}">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Company</label>
-                                <input type="text" id="editCompanyInModal" value="${escapeHtml(contact.company || '')}">
-                            </div>
-                            <div class="form-group">
-                                <label>Location</label>
-                                <input type="text" id="editLocationInModal" value="${escapeHtml(contact.location || '')}">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <textarea id="editNotesInModal" rows="3">${escapeHtml(contact.notes || '')}</textarea>
-                        </div>
-
-                        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
-                            <button type="button" class="btn btn-secondary" onclick="cancelEditDetails()">Cancel</button>
-                            <button type="button" class="btn btn-danger" onclick="deleteContactFromDetails()">Delete</button>
-                            <button type="submit" class="btn btn-primary">Save Contact</button>
-                        </div>
-                    </form>
-                `;
-                tabContent.innerHTML = detailsHTML;
-                isEditingDetails = true;
-            } else if (currentViewTab === 'history') {
-                // Load conversation history (read-only list)
+            // Handle History tab
+            if (currentViewTab === 'history') {
                 await loadContactHistory(contact);
+                return;
             }
             
-            // Update tab buttons - use data attributes for reliable matching
-            const tabButtons = document.querySelectorAll('.tab-btn');
-            tabButtons.forEach(btn => {
-                const tabName = btn.getAttribute('data-tab');
-                const isActive = tabName === currentViewTab;
-                btn.style.borderBottomColor = isActive ? 'var(--primary-color)' : 'transparent';
-                btn.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
-                btn.style.fontWeight = isActive ? '600' : '400';
-            });
+            // Build editable form matching Add Contact modal layout (Details tab)
+            const statusOptions = ['wait', 'queued', 'need_to_contact', 'contacted', 'circle_back', 'scheduled', 'done', 'ghosted'];
+            const typeOptions = ['', 'existing', '2026_new'];
+            const groupOptions = ['', 'Fam', 'McK', 'PEA', 'GU', 'BP', 'MBA', 'MVNX', 'Other'];
+            
+            // Escape HTML to prevent XSS and ensure values display correctly
+            const escapeHtml = (text) => {
+                if (text == null || text === undefined) return '';
+                return String(text)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            };
+            
+            let detailsHTML = `
+                <form id="editContactFormInModal" onsubmit="saveContactFromDetails(event)">
+                    <input type="hidden" id="editContactIdInModal" value="${escapeHtml(contact.id)}">
+                    
+                    <div class="form-group required">
+                        <label>Name</label>
+                        <input type="text" id="editNameInModal" value="${escapeHtml(contact.name || '')}" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="editEmailInModal" value="${escapeHtml(contact.email || '')}">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" id="editPhoneInModal" value="${escapeHtml(contact.phone || '')}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="editStatusInModal">
+                                ${statusOptions.map(opt => {
+                                    // Normalize status for comparison (handle both formats)
+                                    const contactStatus = (contact.status || '').toLowerCase().replace(/\s+/g, '_').trim();
+                                    const optLower = opt.toLowerCase().trim();
+                                    const isSelected = contactStatus === optLower;
+                                    // Display with proper capitalization
+                                    const displayText = opt.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayText}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="editTypeInModal">
+                                ${typeOptions.map(opt => {
+                                    // Normalize type for comparison: handle both "existing"/"2026_new" and "Existing"/"2026 New"
+                                    const contactType = (contact.type || '').toLowerCase().trim();
+                                    const optLower = (opt || '').toLowerCase().trim();
+                                    const isSelected = contactType === optLower || 
+                                                      (contactType === 'existing' && optLower === 'existing') ||
+                                                      (contactType === '2026_new' && optLower === '2026_new') ||
+                                                      (contactType === '2026 new' && optLower === '2026_new');
+                                    return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${opt === '2026_new' ? '2026 New' : (opt === 'existing' ? 'Existing' : (opt || '-- Select --'))}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Group</label>
+                            <select id="editGroupInModal">
+                                ${groupOptions.map(opt => {
+                                    // Normalize the contact's group value to remove any parentheses or formatting issues
+                                    const normalizedGroup = normalizeGroupValue(contact.group || '');
+                                    const isSelected = normalizedGroup === opt;
+                                    // Display clean names without any parentheses
+                                    const displayName = opt === 'Fam' ? 'Family' : 
+                                                      (opt === 'McK' ? 'McKinsey' : 
+                                                      (opt === 'PEA' ? 'Exeter' : 
+                                                      (opt === 'GU' ? 'Georgetown' : 
+                                                      (opt === 'BP' ? 'Berkshire' : 
+                                                      (opt === 'MBA' ? 'MBA' : 
+                                                      (opt === 'MVNX' ? 'Mavnox' : 
+                                                      (opt === 'Other' ? 'Other' : '-- Select --')))))));
+                                    return `<option value="${escapeHtml(opt)}" ${isSelected ? 'selected' : ''}>${displayName}</option>`;
+                                }).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>LinkedIn URL</label>
+                            <input type="url" id="editLinkedInInModal" value="${escapeHtml(contact.linkedin_url || '')}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Company</label>
+                            <input type="text" id="editCompanyInModal" value="${escapeHtml(contact.company || '')}">
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <input type="text" id="editTitleInModal" value="${escapeHtml(contact.title || '')}">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="editLocationInModal" value="${escapeHtml(contact.location || '')}">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="editNotesInModal" rows="3">${escapeHtml(contact.notes || '')}</textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 16px;">
+                        <button type="button" class="btn btn-danger" onclick="deleteContactFromDetails()">Delete</button>
+                        <button type="submit" class="btn btn-primary">Save Contact</button>
+                    </div>
+                </form>
+            `;
+            viewContent.innerHTML = detailsHTML;
+            isEditingDetails = true;
         }
 
         async function loadContactHistory(contact) {
-            const tabContent = document.getElementById('contactTabContent');
+            const tabContent = document.getElementById('viewDetailsContent');
             tabContent.innerHTML = '<div class="loading">Loading conversation history...</div>';
             
             try {
@@ -2874,28 +2888,53 @@
             document.getElementById('sendEmailContactId').value = contactId;
             document.getElementById('sendEmailTo').textContent = contact.email;
             
-            // Generate draft content (same logic as openSendModal)
-            const isNew = contact.type === '2026_new';
-            const timeVariation = 0; // Always use first variation for send form
-            const personalization = generatePersonalizedContent(contact, isNew, 'email', timeVariation);
+            // Show loading state
+            document.getElementById('sendEmailSubject').value = 'Generating draft...';
+            document.getElementById('sendEmailBody').value = 'Please wait while we generate a personalized message using your writing guides...';
+            document.getElementById('sendEmailModal').classList.add('active');
             
-            let emailSubject = '';
-            let emailBody = '';
-            
-            if (isNew && contact.type === '2026_new') {
-                // NEW CONTACT - Use formal email template
-                const email = generateFormalEmail(contact, personalization);
-                emailSubject = email.subject;
-                emailBody = email.body;
-            } else {
-                // EXISTING CONTACT - Use casual email template
-                const email = generateCasualEmail(contact, personalization, timeVariation);
-                emailSubject = email.subject;
-                emailBody = email.body;
+            try {
+                // Call backend API to generate draft using markdown files as context
+                const response = await fetch('/api/messages/generate-draft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contact_id: contactId,
+                        batch_id: null, // Could be enhanced to track batches
+                        recent_draft_ids: null // Could be enhanced to track recent drafts
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+
+                const draft = await response.json();
+
+                // Populate the form with the generated draft.
+                // Behave like the Draft modal (which can return email OR text), but keep it editable here.
+                // If the generator returns a text draft (common when a contact has a phone), we still allow
+                // sending as email by providing a safe default subject.
+                document.getElementById('sendEmailSubject').value =
+                    (draft.subject && draft.subject.trim()) ? draft.subject : 'Quick question';
+                document.getElementById('sendEmailBody').value = draft.body || '';
+
+            } catch (error) {
+                console.error('Error generating draft:', error);
+                // Show error in the form fields
+                document.getElementById('sendEmailSubject').value = 'Error generating draft';
+                document.getElementById('sendEmailBody').value = 
+                    `Failed to generate draft: ${error.message}\n\n` +
+                    `Please check that:\n` +
+                    `1. ANTHROPIC_API_KEY is set in your environment\n` +
+                    `2. The writing/ folder contains the markdown guide files\n` +
+                    `3. The backend server is running\n\n` +
+                    `You can manually edit the subject and body above.`;
+                showMessage('Failed to generate draft. You can edit the fields manually.', 'error');
             }
-            
-            document.getElementById('sendEmailSubject').value = emailSubject;
-            document.getElementById('sendEmailBody').value = emailBody;
             
             // Load available Gmail accounts
             try {
@@ -2918,11 +2957,24 @@
                 console.error('Error loading Gmail accounts:', e);
                 document.getElementById('sendEmailFromAccount').innerHTML = '<option value="">Error loading accounts</option>';
             }
-            
-            document.getElementById('sendEmailModal').classList.add('active');
         }
 
-        function openSendSMSForm(contactId) {
+        // Unified "Send" handler: routes to SMS when a phone number exists, otherwise email.
+        // This matches the generator default (phone => text) and fixes phone-only contacts.
+        function openSendForm(contactId) {
+            const contact = allContacts.find(c => c.id === contactId);
+            if (!contact) {
+                showMessage('Contact not found', 'error');
+                return;
+            }
+            if (contact.phone) {
+                openSendSMSForm(contactId);
+            } else {
+                openSendEmailForm(contactId);
+            }
+        }
+
+        async function openSendSMSForm(contactId) {
             const contact = allContacts.find(c => c.id === contactId);
             if (!contact || !contact.phone) {
                 showMessage('Contact has no phone number', 'error');
@@ -2931,8 +2983,43 @@
             
             document.getElementById('sendSMSContactId').value = contactId;
             document.getElementById('sendSMSTo').textContent = contact.phone;
-            document.getElementById('sendSMSBody').value = '';
+            const fromEl = document.getElementById('sendSMSFrom');
+            if (fromEl) fromEl.textContent = DEFAULT_SMS_FROM_NUMBER;
+
+            // Show loading state + open modal immediately (so it feels responsive)
+            document.getElementById('sendSMSBody').value = 'Generating draft...';
             document.getElementById('sendSMSModal').classList.add('active');
+
+            try {
+                // Generate draft using the same backend endpoint as "Draft"
+                const response = await fetch('/api/messages/generate-draft', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contact_id: contactId,
+                        batch_id: null,
+                        recent_draft_ids: null
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}`);
+                }
+
+                const draft = await response.json();
+                document.getElementById('sendSMSBody').value = draft.body || '';
+            } catch (error) {
+                console.error('Error generating SMS draft:', error);
+                document.getElementById('sendSMSBody').value =
+                    `Failed to generate draft: ${error.message}\n\n` +
+                    `Please check that:\n` +
+                    `1. ANTHROPIC_API_KEY is set in your environment\n` +
+                    `2. The writing/ folder contains the markdown guide files\n` +
+                    `3. The backend server is running\n\n` +
+                    `You can manually edit the message above.`;
+                showMessage('Failed to generate draft. You can edit the message manually.', 'error');
+            }
         }
 
         // Helper function to fetch with timeout
@@ -3633,15 +3720,24 @@
                         // Ensure message ID and contact ID are properly escaped
                         const msgId = msg.id || '';
                         const contactId = msg.contact_id || '';
+                        const isFlagged = msg.flagged || false;
+                        const flaggedClass = isFlagged ? 'flagged' : '';
+                        const flagIcon = isFlagged ? '🚩' : '⚐';
                         
                         inboxHTML += `
-                            <div class="mailbox-item" onclick="openReplyModalFromMessage('${msgId}', '${contactId}')">
+                            <div class="mailbox-item ${flaggedClass}" onclick="openReplyModalFromMessage('${msgId}', '${contactId}')">
                                 <div class="mailbox-item-header">
                                     <div class="mailbox-item-from">${displayName}${unknownIndicator}</div>
                                     <div class="mailbox-item-date">${dateStr}</div>
                                 </div>
                                 <div class="mailbox-item-subject">${msg.subject || '(No subject)'}</div>
                                 <div class="mailbox-item-preview">${(msg.body || '').substring(0, 100)}...</div>
+                                <div class="mailbox-item-actions" onclick="event.stopPropagation();">
+                                    <button class="mailbox-action-btn ${isFlagged ? 'flagged' : ''}" onclick="toggleFlag(${msgId}, ${!isFlagged})" title="${isFlagged ? 'Unflag' : 'Flag'}">
+                                        ${flagIcon}
+                                    </button>
+                                    <button class="mailbox-action-btn" onclick="archiveMessage(${msgId})" title="Archive">🗄️</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -3658,15 +3754,24 @@
                         const contactName = contactMap[msg.contact_id] || null;
                         const displayName = contactName || msg.to_address || 'Unknown';
                         const unknownIndicator = !contactName ? '<span class="unknown-contact">(Unknown Contact)</span>' : '';
+                        const isFlagged = msg.flagged || false;
+                        const flaggedClass = isFlagged ? 'flagged' : '';
+                        const flagIcon = isFlagged ? '🚩' : '⚐';
                         
                         outboxHTML += `
-                            <div class="mailbox-item" onclick="viewContactDetails('${msg.contact_id}')">
+                            <div class="mailbox-item ${flaggedClass}" onclick="viewContactDetails('${msg.contact_id}')">
                                 <div class="mailbox-item-header">
                                     <div class="mailbox-item-from">${displayName}${unknownIndicator}</div>
                                     <div class="mailbox-item-date">${dateStr}</div>
                                 </div>
                                 <div class="mailbox-item-subject">${msg.subject || '(No subject)'}</div>
                                 <div class="mailbox-item-preview">${(msg.body || '').substring(0, 100)}...</div>
+                                <div class="mailbox-item-actions" onclick="event.stopPropagation();">
+                                    <button class="mailbox-action-btn ${isFlagged ? 'flagged' : ''}" onclick="toggleFlag(${msg.id}, ${!isFlagged})" title="${isFlagged ? 'Unflag' : 'Flag'}">
+                                        ${flagIcon}
+                                    </button>
+                                    <button class="mailbox-action-btn" onclick="archiveMessage(${msg.id})" title="Archive">🗄️</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -3675,6 +3780,52 @@
             } catch (error) {
                 inboxList.innerHTML = `<div class="error">Error loading inbox: ${error.message}</div>`;
                 outboxList.innerHTML = `<div class="error">Error loading outbox: ${error.message}</div>`;
+            }
+        }
+
+        async function toggleFlag(messageId, flagged) {
+            try {
+                const response = await fetch(`${API_BASE}/messages/${messageId}/flag?flagged=${flagged}`, {
+                    method: 'PATCH'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to toggle flag');
+                }
+                
+                // Reload mailbox to show updated state
+                if (currentMainTab === 'mailbox') {
+                    loadMailbox();
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function archiveMessage(messageId) {
+            if (!confirm('Archive this message? It will be removed from the mailbox but not from Gmail.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/${messageId}/archive`, {
+                    method: 'PATCH'
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to archive message');
+                }
+                
+                showMessage('Message archived', 'success');
+                
+                // Reload mailbox to remove archived message
+                if (currentMainTab === 'mailbox') {
+                    loadMailbox();
+                }
+            } catch (error) {
+                showMessage(`Error: ${error.message}`, 'error');
             }
         }
 

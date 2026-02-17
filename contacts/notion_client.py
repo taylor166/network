@@ -322,6 +322,25 @@ class NotionContactClient:
         # Get name and handle empty names
         raw_name = self._get_property_value(properties, ["Contact", "Name", "name"], "title")
         contact_name = raw_name.strip() if raw_name else "Unnamed Contact"
+
+        # Derive first/last name for downstream personalization (AI drafts, greetings, etc.)
+        first_name = None
+        last_name = None
+        if contact_name and contact_name.lower() != "unnamed contact":
+            name_str = contact_name.strip()
+            if "," in name_str:
+                # Handle "Last, First ..." format
+                last, rest = name_str.split(",", 1)
+                rest_parts = rest.strip().split()
+                if rest_parts:
+                    first_name = rest_parts[0]
+                    last_name = last.strip() or None
+            else:
+                parts = name_str.split()
+                if parts:
+                    first_name = parts[0]
+                    if len(parts) > 1:
+                        last_name = " ".join(parts[1:])
         
         # Get last_edited_time from Notion page metadata
         last_edited_time = None
@@ -331,6 +350,8 @@ class NotionContactClient:
         contact = {
             "id": notion_page.get("id"),
             "name": contact_name,
+            "first_name": first_name,
+            "last_name": last_name,
             "email": self._get_property_value(properties, ["Email", "email"], "rich_text"),  # Your Email is rich_text, not email type
             "phone": self._get_property_value(properties, ["Phone", "phone"], "phone_number"),
             "status": normalized_status,  # Normalized to lowercase

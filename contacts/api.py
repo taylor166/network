@@ -7,8 +7,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from typing import List, Optional
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 import time
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Load environment variables from .env file
+# Use explicit path to ensure .env is found regardless of working directory
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 from contacts.notion_client import NotionContactClient
 from contacts.models import (
@@ -16,7 +23,8 @@ from contacts.models import (
 )
 from contacts.message_models import (
     MessageSendEmail, MessageSendSMS, MessageResponse, MessageFilter,
-    MessageDirection, MessageChannel, MessageCreate
+    MessageDirection, MessageChannel, MessageCreate,
+    MessageDraftRequest, MessageDraftResponse
 )
 from contacts.message_storage import MessageStorage
 
@@ -413,7 +421,16 @@ async def health_check():
         client = get_notion_client()
         # Try to query the database to verify connection
         client.get_all_contacts(page_size=1)
-        return {"status": "healthy", "notion_connected": True}
+        
+        # Check message generator status
+        generator = get_message_generator()
+        message_gen_status = "available" if generator else "not_configured"
+        
+        return {
+            "status": "healthy", 
+            "notion_connected": True,
+            "message_generator": message_gen_status
+        }
     except Exception as e:
         return {"status": "unhealthy", "notion_connected": False, "error": str(e)}
 
@@ -421,6 +438,82 @@ async def health_check():
 # ============================================================================
 # Message Endpoints
 # ============================================================================
+
+# Initialize message generator (lazy initialization)
+message_generator = None
+
+def get_message_generator():
+    """Get or create message generator instance."""
+    global message_generator
+    # Always try to initialize if None (retry on each request if it failed before)
+    if message_generator is None:
+        try:
+            # Ensure .env is loaded before creating generator
+            env_path = Path(__file__).parent.parent / ".env"
+            if env_path.exists():
+                load_dotenv(dotenv_path=env_path, override=True)  # Use override=True to ensure latest values are loaded
+                logger.debug(f"Reloaded .env from {env_path}")
+            else:
+                logger.warning(f".env file not found at {env_path}")
+            
+            from contacts.message_generator import MessageGenerator
+            message_generator = MessageGenerator()
+            logger.info("Message generator initialized successfully")
+        except Exception as e:
+            logger.error(f"Message generator initialization failed: {e}", exc_info=True)
+            # Don't cache the failure - allow retry on next request
+            message_generator = None
+            return None
+    return message_generator
+
+@app.post("/api/messages/generate-draft", response_model=MessageDraftResponse)
+async def generate_draft(request: MessageDraftRequest):
+    """Generate a personalized message draft for a contact using AI and writing guides."""
+    try:
+        # Get contact
+        notion_client = get_notion_client()
+        contact = notion_client.get_contact(request.contact_id)
+        
+        if not contact:
+            raise HTTPException(status_code=404, detail="Contact not found")
+        
+        # Get message generator
+        generator = get_message_generator()
+        if not generator:
+            raise HTTPException(
+                status_code=503,
+                detail="Message generation not configured. Set ANTHROPIC_API_KEY environment variable in your .env file. See contacts/MESSAGE_GENERATION_SETUP.md for setup instructions."
+            )
+        
+        # Get recent drafts if provided (for variation tracking)
+        recent_drafts = None
+        if request.recent_draft_ids:
+            # In a real implementation, you might fetch these from storage
+            # For now, we'll just pass the IDs to the generator
+            recent_drafts = request.recent_draft_ids
+        
+        # Generate draft
+        draft = generator.generate_draft(
+            contact=contact,
+            batch_id=request.batch_id,
+            recent_drafts=recent_drafts,
+            channel_override=request.channel
+        )
+        
+        return MessageDraftResponse(
+            subject=draft.get("subject", ""),
+            body=draft.get("body", ""),
+            channel=draft.get("channel", "email")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error generating draft: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate draft: {str(e)}"
+        )
 
 @app.post("/api/messages/send-email", response_model=MessageResponse, status_code=201)
 async def send_email(message: MessageSendEmail):
@@ -966,4 +1059,36 @@ async def get_contact_messages(
         raise
     except Exception as e:
         logger.error(f"Error fetching messages for contact {contact_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/api/messages/{message_id}/flag")
+async def flag_message(message_id: int, flagged: bool = Query(True)):
+    """Flag or unflag a message (local only, doesn't affect Gmail)."""
+    try:
+        storage = get_message_storage()
+        updated = storage.update_message(message_id, {"flagged": 1 if flagged else 0})
+        if not updated:
+            raise HTTPException(status_code=404, detail="Message not found")
+        return updated
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error flagging message {message_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.patch("/api/messages/{message_id}/archive")
+async def archive_message(message_id: int):
+    """Archive a message (local only, doesn't affect Gmail)."""
+    try:
+        storage = get_message_storage()
+        updated = storage.update_message(message_id, {"archived": 1})
+        if not updated:
+            raise HTTPException(status_code=404, detail="Message not found")
+        return updated
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error archiving message {message_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))

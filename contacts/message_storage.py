@@ -68,13 +68,29 @@ def init_message_db():
                 from_account TEXT,
                 sent_at TIMESTAMP,
                 received_at TIMESTAMP,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                flagged INTEGER DEFAULT 0,
+                archived INTEGER DEFAULT 0
             )
         """)
         
         # Add from_account column if it doesn't exist (for existing databases)
         try:
             cursor.execute("ALTER TABLE messages ADD COLUMN from_account TEXT")
+        except sqlite3.OperationalError:
+            # Column already exists
+            pass
+        
+        # Add flagged column if it doesn't exist (for existing databases)
+        try:
+            cursor.execute("ALTER TABLE messages ADD COLUMN flagged INTEGER DEFAULT 0")
+        except sqlite3.OperationalError:
+            # Column already exists
+            pass
+        
+        # Add archived column if it doesn't exist (for existing databases)
+        try:
+            cursor.execute("ALTER TABLE messages ADD COLUMN archived INTEGER DEFAULT 0")
         except sqlite3.OperationalError:
             # Column already exists
             pass
@@ -206,6 +222,9 @@ class MessageStorage:
                     # No CRM emails, so no responses
                     query += " AND 1=0"
             
+            # Exclude archived messages by default
+            query += " AND (archived IS NULL OR archived = 0)"
+            
             # Order by created_at descending (newest first)
             query += " ORDER BY created_at DESC"
             
@@ -288,6 +307,10 @@ class MessageStorage:
         # sqlite3.Row doesn't have .get() method, use bracket notation with key check
         from_account = row["from_account"] if "from_account" in row.keys() else None
         
+        # Get flagged and archived (handle both old and new schema)
+        flagged = bool(row["flagged"]) if "flagged" in row.keys() else False
+        archived = bool(row["archived"]) if "archived" in row.keys() else False
+        
         msg = MessageResponse(
             id=row["id"],
             contact_id=row["contact_id"],
@@ -304,7 +327,9 @@ class MessageStorage:
             sent_at=parse_datetime(row["sent_at"]),
             received_at=parse_datetime(row["received_at"]),
             created_at=parse_datetime(row["created_at"]) or datetime.utcnow(),
-            from_account=from_account
+            from_account=from_account,
+            flagged=flagged,
+            archived=archived
         )
         return msg
     

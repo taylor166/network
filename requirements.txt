@@ -11,3 +11,5 @@ google-auth-httplib2==0.1.1
 google-api-python-client==2.108.0
 # Twilio SMS dependencies
 twilio==8.10.0
+# Anthropic API for message generation
+anthropic>=0.79.0
